@@ -1,4 +1,4 @@
-﻿import crypto from "crypto";
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { publishOverlaySchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";

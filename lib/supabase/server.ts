@@ -1,4 +1,4 @@
-﻿import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 

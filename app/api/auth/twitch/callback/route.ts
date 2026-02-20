@@ -1,4 +1,4 @@
-﻿import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/server";

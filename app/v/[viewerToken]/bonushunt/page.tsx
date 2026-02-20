@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export default async function ViewerBonushuntPage({ params }: { params: Promise<{ viewerToken: string }> }) {

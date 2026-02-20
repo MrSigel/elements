@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { overlayCreateSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
