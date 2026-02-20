@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 import { OverlayRuntime } from "@/components/overlay/OverlayRuntime";
 
@@ -11,7 +11,8 @@ export default async function OverlayPage({ params }: { params: { overlayToken: 
     .eq("revoked", false)
     .single();
 
-  if (!token || !(token.overlays as { is_published: boolean }).is_published) return notFound();
+  const overlayRel = Array.isArray(token?.overlays) ? token?.overlays[0] : token?.overlays;
+  if (!token || !overlayRel?.is_published) return notFound();
 
   const [{ data: snapshots }, { data: widgets }] = await Promise.all([
     admin.from("widget_snapshots").select("widget_instance_id,widget_type,state").eq("overlay_id", token.overlay_id),
@@ -22,4 +23,3 @@ export default async function OverlayPage({ params }: { params: { overlayToken: 
 
   return <OverlayRuntime overlayId={token.overlay_id} initialSnapshots={snapshots ?? []} layout={layout} />;
 }
-

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 
-export async function POST(req: NextRequest, { params }: { params: { viewerToken: string } }) {
+export async function POST(req: NextRequest, { params }: any) {
   const body = await req.json();
   const slotName = String(body.slotName ?? "").trim();
   const userId = req.headers.get("x-viewer-id") ?? "anon";
@@ -16,8 +16,9 @@ export async function POST(req: NextRequest, { params }: { params: { viewerToken
     .single();
   if (!viewer) return NextResponse.json({ error: "invalid_token" }, { status: 404 });
 
-  const page = viewer.viewer_pages as { channel_id: string; enabled: boolean; page_type: string };
-  const chId = page.channel_id;
+  const pageRel = Array.isArray(viewer.viewer_pages) ? viewer.viewer_pages[0] : viewer.viewer_pages;
+  if (!pageRel) return NextResponse.json({ error: "invalid_viewer_page" }, { status: 404 });
+  const chId = pageRel.channel_id;
 
   const { data: banned } = await admin.from("viewer_blacklist").select("id").eq("channel_id", chId).eq("viewer_id", userId).maybeSingle();
   if (banned) return NextResponse.json({ error: "blocked" }, { status: 403 });
@@ -49,4 +50,3 @@ export async function POST(req: NextRequest, { params }: { params: { viewerToken
 
   return NextResponse.json({ ok: true });
 }
-

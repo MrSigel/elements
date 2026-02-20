@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, requireChannelPermission } from "@/lib/authz";
 
@@ -6,10 +6,12 @@ async function widgetChannel(widgetInstanceId: string) {
   const admin = createServiceClient();
   const { data } = await admin.from("widget_instances").select("id,overlay_id,overlays!inner(channel_id)").eq("id", widgetInstanceId).single();
   if (!data) throw new AuthzError("widget_not_found", 404);
-  return { channelId: (data.overlays as { channel_id: string }).channel_id, overlayId: data.overlay_id };
+  const overlayRel = Array.isArray(data.overlays) ? data.overlays[0] : data.overlays;
+  if (!overlayRel) throw new AuthzError("overlay_not_found", 404);
+  return { channelId: overlayRel.channel_id as string, overlayId: data.overlay_id };
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { widgetInstanceId: string } }) {
+export async function PATCH(req: NextRequest, { params }: any) {
   const body = await req.json();
   const userClient = createServerClient();
   const { data: auth } = await userClient.auth.getUser();
@@ -28,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { widgetInst
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { widgetInstanceId: string } }) {
+export async function DELETE(_: NextRequest, { params }: any) {
   const userClient = createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -45,4 +47,3 @@ export async function DELETE(_: NextRequest, { params }: { params: { widgetInsta
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
-

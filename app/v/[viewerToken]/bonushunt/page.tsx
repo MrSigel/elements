@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export default async function ViewerBonushuntPage({ params }: { params: { viewerToken: string } }) {
@@ -11,8 +11,8 @@ export default async function ViewerBonushuntPage({ params }: { params: { viewer
     .single();
 
   if (!token) return notFound();
-  const page = token.viewer_pages as { page_type: string; enabled: boolean; overlay_id: string; channel_id: string };
-  if (!page.enabled || page.page_type !== "bonushunt") return notFound();
+  const page = Array.isArray(token.viewer_pages) ? token.viewer_pages[0] : token.viewer_pages;
+  if (!page?.enabled || page.page_type !== "bonushunt") return notFound();
 
   const { data: hunt } = await admin.from("bonushunts").select("id,title,status,totals,bonushunt_entries(slot_name,provider,bet,cost,opened,result_win,result_multiplier)").eq("overlay_id", page.overlay_id).maybeSingle();
 
@@ -23,7 +23,7 @@ export default async function ViewerBonushuntPage({ params }: { params: { viewer
       <div className="space-y-2">
         {(hunt?.bonushunt_entries as Array<Record<string, unknown>> | undefined)?.map((e, i) => (
           <div key={i} className="rounded border border-panelMuted bg-panel p-3 text-sm">
-            {String(e.slot_name)} • bet {String(e.bet)} • {Boolean(e.opened) ? "opened" : "pending"}
+            {String(e.slot_name)} | bet {String(e.bet)} | {Boolean(e.opened) ? "opened" : "pending"}
           </div>
         ))}
       </div>
@@ -34,4 +34,3 @@ export default async function ViewerBonushuntPage({ params }: { params: { viewer
     </main>
   );
 }
-

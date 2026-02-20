@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { widgetConfigUpsertSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, requireChannelPermission } from "@/lib/authz";
@@ -7,10 +7,12 @@ async function widgetChannel(widgetInstanceId: string) {
   const admin = createServiceClient();
   const { data } = await admin.from("widget_instances").select("id,overlay_id,overlays!inner(channel_id)").eq("id", widgetInstanceId).single();
   if (!data) throw new AuthzError("widget_not_found", 404);
-  return { channelId: (data.overlays as { channel_id: string }).channel_id, overlayId: data.overlay_id };
+  const overlayRel = Array.isArray(data.overlays) ? data.overlays[0] : data.overlays;
+  if (!overlayRel) throw new AuthzError("overlay_not_found", 404);
+  return { channelId: overlayRel.channel_id as string, overlayId: data.overlay_id };
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { widgetInstanceId: string } }) {
+export async function PUT(req: NextRequest, { params }: any) {
   const parsed = widgetConfigUpsertSchema.safeParse({ ...(await req.json()), widgetInstanceId: params.widgetInstanceId });
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
@@ -31,4 +33,3 @@ export async function PUT(req: NextRequest, { params }: { params: { widgetInstan
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
-

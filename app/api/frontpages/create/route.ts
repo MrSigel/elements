@@ -1,4 +1,4 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { frontpageCreateSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
@@ -28,4 +28,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 

@@ -1,4 +1,4 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 
@@ -21,4 +21,5 @@ export async function GET(req: NextRequest) {
   res.cookies.set("tw_state", state, { httpOnly: true, sameSite: "lax", secure: true, path: "/" });
   return res;
 }
+
 

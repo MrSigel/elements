@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
-export async function GET(_: NextRequest, { params }: { params: { overlayId: string } }) {
+export async function GET(_: NextRequest, { params }: any) {
   const userClient = createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -16,4 +16,5 @@ export async function GET(_: NextRequest, { params }: { params: { overlayId: str
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ widgets: data ?? [] });
 }
+
 

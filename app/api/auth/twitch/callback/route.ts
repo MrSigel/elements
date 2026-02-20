@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -27,7 +27,8 @@ async function resolveOrCreateAuthUser(admin: ReturnType<typeof createServiceCli
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
-  const expected = cookies().get("tw_state")?.value;
+  const cookieStore = cookies() as any;
+  const expected = cookieStore?.get?.("tw_state")?.value;
   if (!code || !state || state !== expected) return NextResponse.json({ error: "invalid_oauth_state" }, { status: 400 });
 
   const tokenRes = await fetch("https://id.twitch.tv/oauth2/token", {
@@ -87,4 +88,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "oauth_failed" }, { status: 500 });
   }
 }
-

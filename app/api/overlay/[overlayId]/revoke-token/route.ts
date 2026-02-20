@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, getOverlayChannelId, requireChannelPermission } from "@/lib/authz";
 
-export async function POST(_: Request, { params }: { params: { overlayId: string } }) {
+export async function POST(_: Request, { params }: any) {
   const userClient = createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -20,4 +20,5 @@ export async function POST(_: Request, { params }: { params: { overlayId: string
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 

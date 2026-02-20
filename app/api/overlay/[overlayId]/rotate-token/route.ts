@@ -1,9 +1,9 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, getOverlayChannelId, requireChannelPermission } from "@/lib/authz";
 
-export async function POST(_: NextRequest, { params }: { params: { overlayId: string } }) {
+export async function POST(_: NextRequest, { params }: any) {
   const userClient = createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -28,4 +28,5 @@ export async function POST(_: NextRequest, { params }: { params: { overlayId: st
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 

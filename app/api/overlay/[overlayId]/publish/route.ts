@@ -1,10 +1,10 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { publishOverlaySchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, getOverlayChannelId, requireChannelPermission } from "@/lib/authz";
 
-export async function POST(req: NextRequest, { params }: { params: { overlayId: string } }) {
+export async function POST(req: NextRequest, { params }: any) {
   const parsed = publishOverlaySchema.safeParse({ ...(await req.json()), overlayId: params.overlayId });
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
@@ -36,4 +36,5 @@ export async function POST(req: NextRequest, { params }: { params: { overlayId: 
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 

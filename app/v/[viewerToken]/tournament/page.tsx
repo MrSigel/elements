@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export default async function ViewerTournamentPage({ params }: { params: { viewerToken: string } }) {
@@ -11,8 +11,8 @@ export default async function ViewerTournamentPage({ params }: { params: { viewe
     .single();
 
   if (!token) return notFound();
-  const page = token.viewer_pages as { page_type: string; enabled: boolean; overlay_id: string };
-  if (!page.enabled || page.page_type !== "tournament") return notFound();
+  const page = Array.isArray(token.viewer_pages) ? token.viewer_pages[0] : token.viewer_pages;
+  if (!page?.enabled || page.page_type !== "tournament") return notFound();
 
   const { data: tournament } = await admin
     .from("tournaments")
@@ -35,4 +35,3 @@ export default async function ViewerTournamentPage({ params }: { params: { viewe
     </main>
   );
 }
-

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, requireChannelPermission } from "@/lib/authz";
 import { safeCsvCell } from "@/lib/security";
@@ -25,4 +25,5 @@ export async function GET() {
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 
