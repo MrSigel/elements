@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: radial-gradient(1400px circle at 0% 0%, #172432 0%, #0f1419 55%);
+  color: #e5edf5;
+}
+
+input, button, select, textarea {
+  outline-color: #44b3ff;
+}
