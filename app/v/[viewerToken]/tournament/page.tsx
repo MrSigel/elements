@@ -1,12 +1,13 @@
 ﻿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
-export default async function ViewerTournamentPage({ params }: { params: { viewerToken: string } }) {
+export default async function ViewerTournamentPage({ params }: { params: Promise<{ viewerToken: string }> }) {
+  const { viewerToken } = await params;
   const admin = createServiceClient();
   const { data: token } = await admin
     .from("viewer_tokens")
     .select("viewer_pages!inner(id,page_type,enabled,overlay_id)")
-    .eq("public_token", params.viewerToken)
+    .eq("public_token", viewerToken)
     .eq("revoked", false)
     .single();
 

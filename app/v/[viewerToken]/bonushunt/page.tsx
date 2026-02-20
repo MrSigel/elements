@@ -1,12 +1,13 @@
 ﻿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
-export default async function ViewerBonushuntPage({ params }: { params: { viewerToken: string } }) {
+export default async function ViewerBonushuntPage({ params }: { params: Promise<{ viewerToken: string }> }) {
+  const { viewerToken } = await params;
   const admin = createServiceClient();
   const { data: token } = await admin
     .from("viewer_tokens")
     .select("viewer_pages!inner(id,page_type,enabled,overlay_id,channel_id)")
-    .eq("public_token", params.viewerToken)
+    .eq("public_token", viewerToken)
     .eq("revoked", false)
     .single();
 
@@ -27,7 +28,7 @@ export default async function ViewerBonushuntPage({ params }: { params: { viewer
           </div>
         ))}
       </div>
-      <form method="post" action={`/api/viewer/${params.viewerToken}/bonushunt/guess`} className="flex gap-2">
+      <form method="post" action={`/api/viewer/${viewerToken}/bonushunt/guess`} className="flex gap-2">
         <input name="value" type="number" step="0.01" required className="rounded bg-panel border border-panelMuted px-3 py-2" placeholder="Your total guess" />
         <button className="rounded bg-accent text-black px-3 py-2">Submit Guess</button>
       </form>

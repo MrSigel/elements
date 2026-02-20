@@ -2,12 +2,13 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { OverlayRuntime } from "@/components/overlay/OverlayRuntime";
 
-export default async function OverlayPage({ params }: { params: { overlayToken: string } }) {
+export default async function OverlayPage({ params }: { params: Promise<{ overlayToken: string }> }) {
+  const { overlayToken } = await params;
   const admin = createServiceClient();
   const { data: token } = await admin
     .from("overlay_tokens")
     .select("overlay_id,overlays!inner(id,is_published)")
-    .eq("public_token", params.overlayToken)
+    .eq("public_token", overlayToken)
     .eq("revoked", false)
     .single();
 
