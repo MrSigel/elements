@@ -2,6 +2,9 @@ import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { createServiceClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function LogsPage() {
   const admin = createServiceClient();
   const [{ data: logs }, { data: events }] = await Promise.all([

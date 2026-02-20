@@ -4,6 +4,9 @@ import { WidgetInstanceManager } from "@/components/forms/WidgetInstanceManager"
 import { WidgetControlDeck } from "@/components/forms/WidgetControlDeck";
 import { createServiceClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function WidgetsPage() {
   const admin = createServiceClient();
   const { data: overlays } = await admin.from("overlays").select("id").limit(1);

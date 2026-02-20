@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 import { OverlayRuntime } from "@/components/overlay/OverlayRuntime";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function OverlayPage({ params }: { params: Promise<{ overlayToken: string }> }) {
   const { overlayToken } = await params;
   const admin = createServiceClient();

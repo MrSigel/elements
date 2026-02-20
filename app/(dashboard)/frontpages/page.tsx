@@ -2,6 +2,9 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { FrontpageManager } from "@/components/forms/FrontpageManager";
 import { createServiceClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function FrontpagesPage() {
   const admin = createServiceClient();
   const [{ data: pages }, { data: overlays }] = await Promise.all([

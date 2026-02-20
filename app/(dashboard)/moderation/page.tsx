@@ -4,6 +4,9 @@ import { ModInviteForm } from "@/components/forms/ModInviteForm";
 import { PermissionMatrix } from "@/components/forms/PermissionMatrix";
 import { createServiceClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ModerationPage() {
   const admin = createServiceClient();
   const [{ data: channels }, { data: roles }, { data: permissions }, { data: overlays }, { data: widgets }] = await Promise.all([
