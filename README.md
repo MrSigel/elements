@@ -1,4 +1,4 @@
-# Twitch Overlay Studio
+﻿# Twitch Overlay Studio
 
 Production-ready Next.js + Supabase system for configuring, managing, and publishing Twitch overlay widgets with real persisted state and realtime updates.
 
@@ -43,3 +43,4 @@ All dashboard actions must write via `POST /api/widgets/action`, which calls SQL
 ## Notes
 - No mock data or simulator endpoints are included.
 - Tokens are real DB records and can be rotated/revoked.
+

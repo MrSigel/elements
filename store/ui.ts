@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { create } from "zustand";
 
@@ -11,3 +11,4 @@ export const useUiStore = create<UiState>((set) => ({
   selectedWidgetInstanceId: null,
   setSelectedWidgetInstanceId: (id) => set({ selectedWidgetInstanceId: id })
 }));
+

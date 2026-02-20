@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 
@@ -72,3 +72,4 @@ export function PermissionMatrix({ roles, permissions, overlays, widgets }: { ro
     </div>
   );
 }
+

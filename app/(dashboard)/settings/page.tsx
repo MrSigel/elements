@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+﻿import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function SettingsPage() {
   return (
@@ -7,3 +7,4 @@ export default function SettingsPage() {
     </DashboardShell>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
@@ -76,3 +76,4 @@ export function OverlayRuntime({ overlayId, initialSnapshots, layout }: { overla
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { buildIngestSignature } from "@/lib/security";
 import { ingestCurrentPlayingSchema } from "@/lib/schemas/overlay";
 import { env } from "@/lib/env";
@@ -31,3 +31,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+

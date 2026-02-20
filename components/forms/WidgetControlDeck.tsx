@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -48,3 +48,4 @@ export function WidgetControlDeck({ overlayId }: { overlayId: string }) {
     </div>
   );
 }
+

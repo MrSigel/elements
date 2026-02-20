@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { overlayCreateSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
@@ -30,3 +30,4 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ overlayId: data.id });
 }
+

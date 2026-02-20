@@ -1,4 +1,4 @@
-import net from "net";
+﻿import net from "net";
 import { createServiceClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 
@@ -33,3 +33,4 @@ export function startTwitchGuessBot(channelLogin: string, bonushuntId: string) {
 
   return () => socket.end();
 }
+

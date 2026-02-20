@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 type OverlayRow = {
   id: string;
@@ -27,7 +27,7 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-medium">{o.name}</p>
-              <p className="text-xs text-subtle">{o.width}x{o.height} � {o.is_published ? "Published" : "Draft"}</p>
+              <p className="text-xs text-subtle">{o.width}x{o.height} • {o.is_published ? "Published" : "Draft"}</p>
               <p className="text-xs text-subtle font-mono break-all">{o.overlay_tokens?.[0]?.public_token ?? "No token"}</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -43,3 +43,4 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const overlayCreateSchema = z.object({
   name: z.string().min(2).max(64),
@@ -56,3 +56,4 @@ export const ingestCurrentPlayingSchema = z.object({
   gameName: z.string().min(1),
   provider: z.string().min(1)
 });
+

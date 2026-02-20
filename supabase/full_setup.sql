@@ -1,4 +1,4 @@
--- Full Supabase setup SQL (generated)
+﻿-- Full Supabase setup SQL (generated)
 
 -- ===== BEGIN 20260220161000_init.sql =====
 
@@ -548,4 +548,5 @@ create table if not exists viewer_cooldowns (
 );
 
 -- ===== END 20260220181000_antabuse.sql =====
+
 

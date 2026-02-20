@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 
 export function createBrowserClient() {
@@ -6,3 +6,4 @@ export function createBrowserClient() {
     auth: { persistSession: true, autoRefreshToken: true }
   });
 }
+

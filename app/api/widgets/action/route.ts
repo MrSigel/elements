@@ -1,4 +1,4 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { widgetActionInputSchema } from "@/lib/schemas/widgetActions";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
@@ -156,4 +156,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "action_failed" }, { status: 400 });
   }
 }
+
 

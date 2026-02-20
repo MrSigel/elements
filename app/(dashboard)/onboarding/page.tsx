@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function OnboardingPage() {
   return (
@@ -13,3 +13,4 @@ export default function OnboardingPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+ï»¿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export default async function ViewerBonushuntPage({ params }: { params: { viewerToken: string } }) {
@@ -23,7 +23,7 @@ export default async function ViewerBonushuntPage({ params }: { params: { viewer
       <div className="space-y-2">
         {(hunt?.bonushunt_entries as Array<Record<string, unknown>> | undefined)?.map((e, i) => (
           <div key={i} className="rounded border border-panelMuted bg-panel p-3 text-sm">
-            {String(e.slot_name)} • bet {String(e.bet)} • {Boolean(e.opened) ? "opened" : "pending"}
+            {String(e.slot_name)} â€¢ bet {String(e.bet)} â€¢ {Boolean(e.opened) ? "opened" : "pending"}
           </div>
         ))}
       </div>
@@ -34,3 +34,4 @@ export default async function ViewerBonushuntPage({ params }: { params: { viewer
     </main>
   );
 }
+

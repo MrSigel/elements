@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+﻿import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LayoutEditor } from "@/components/dashboard/LayoutEditor";
 import { WidgetInstanceManager } from "@/components/forms/WidgetInstanceManager";
 import { WidgetControlDeck } from "@/components/forms/WidgetControlDeck";
@@ -23,3 +23,4 @@ export default async function WidgetsPage() {
     </DashboardShell>
   );
 }
+

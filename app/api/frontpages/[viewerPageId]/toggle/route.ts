@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, requireChannelPermission } from "@/lib/authz";
 
@@ -27,3 +27,4 @@ export async function PATCH(req: NextRequest, { params }: { params: { viewerPage
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+

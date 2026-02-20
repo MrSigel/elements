@@ -1,4 +1,4 @@
--- supabase/migrations/20260220162000_event_rpc.sql
+﻿-- supabase/migrations/20260220162000_event_rpc.sql
 create or replace function apply_widget_event(
   p_channel_id uuid,
   p_overlay_id uuid,
@@ -35,3 +35,4 @@ begin
   return v_event_id;
 end;
 $$;
+

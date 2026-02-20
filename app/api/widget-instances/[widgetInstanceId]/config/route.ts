@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { widgetConfigUpsertSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, requireChannelPermission } from "@/lib/authz";
@@ -31,3 +31,4 @@ export async function PUT(req: NextRequest, { params }: { params: { widgetInstan
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+

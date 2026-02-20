@@ -1,4 +1,4 @@
-import { createServiceClient } from "@/lib/supabase/server";
+﻿import { createServiceClient } from "@/lib/supabase/server";
 
 export class AuthzError extends Error {
   status: number;
@@ -73,3 +73,4 @@ export async function getOverlayChannelId(overlayId: string) {
   if (!data) throw new AuthzError("overlay_not_found", 404);
   return data.channel_id;
 }
+

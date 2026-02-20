@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 const schema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
@@ -27,3 +27,4 @@ export const env = schema.parse({
   TWITCH_BOT_USERNAME: process.env.TWITCH_BOT_USERNAME,
   INGEST_SHARED_SECRET: process.env.INGEST_SHARED_SECRET
 });
+

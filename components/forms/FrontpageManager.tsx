@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -35,3 +35,4 @@ export function FrontpageManager({ overlays, pages }: { overlays: { id: string; 
     </div>
   );
 }
+

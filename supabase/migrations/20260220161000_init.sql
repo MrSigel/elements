@@ -1,4 +1,4 @@
--- supabase/migrations/20260220161000_init.sql
+﻿-- supabase/migrations/20260220161000_init.sql
 create extension if not exists pgcrypto;
 
 create type role_type as enum ('owner','moderator');
@@ -463,3 +463,4 @@ for select using (is_channel_owner(channel_id) or is_channel_mod(channel_id));
 
 alter publication supabase_realtime add table widget_snapshots;
 alter publication supabase_realtime add table widget_events;
+

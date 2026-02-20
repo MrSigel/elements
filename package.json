@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "twitch-overlay-studio",
   "version": "1.0.0",
   "private": true,
@@ -31,3 +31,4 @@
     "vitest": "^3.0.8"
   }
 }
+

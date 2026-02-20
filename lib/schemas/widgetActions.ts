@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 const uuid = z.string().uuid();
 
@@ -89,3 +89,4 @@ export const widgetActionInputSchema = z.discriminatedUnion("widgetType", [
 ]);
 
 export type WidgetActionInput = z.infer<typeof widgetActionInputSchema>;
+

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -40,3 +40,4 @@ export default async function LogsPage() {
     </DashboardShell>
   );
 }
+

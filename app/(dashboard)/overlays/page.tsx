@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+﻿import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { OverlayCreateForm } from "@/components/forms/OverlayCreateForm";
 import { OverlayTable } from "@/components/forms/OverlayTable";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -20,3 +20,4 @@ export default async function OverlaysPage() {
     </DashboardShell>
   );
 }
+

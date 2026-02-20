@@ -1,4 +1,4 @@
-export const NAV_ITEMS = [
+﻿export const NAV_ITEMS = [
   { href: "/overlays", label: "Overlays" },
   { href: "/widgets", label: "Widgets" },
   { href: "/frontpages", label: "Frontpages" },
@@ -6,3 +6,4 @@ export const NAV_ITEMS = [
   { href: "/logs", label: "Logs" },
   { href: "/settings", label: "Settings" }
 ] as const;
+

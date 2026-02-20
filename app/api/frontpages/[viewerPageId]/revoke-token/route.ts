@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, requireChannelPermission } from "@/lib/authz";
 
@@ -27,3 +27,4 @@ export async function POST(_: Request, { params }: { params: { viewerPageId: str
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+

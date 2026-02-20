@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -77,3 +77,4 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, getOverlayChannelId, requireChannelPermission } from "@/lib/authz";
 
@@ -20,3 +20,4 @@ export async function DELETE(_: Request, { params }: { params: { overlayId: stri
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+

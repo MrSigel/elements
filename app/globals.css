@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -14,3 +14,4 @@ body {
 input, button, select, textarea {
   outline-color: #44b3ff;
 }
+

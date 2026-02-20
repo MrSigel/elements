@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -27,3 +27,4 @@ export function LayoutEditor({ initial, overlayId }: { initial: LayoutItem[]; ov
     </div>
   );
 }
+

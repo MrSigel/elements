@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -27,3 +27,4 @@ export function ModInviteForm({ channels }: { channels: { id: string; title: str
     </form>
   );
 }
+

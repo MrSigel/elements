@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -87,3 +87,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "oauth_failed" }, { status: 500 });
   }
 }
+

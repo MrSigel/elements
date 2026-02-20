@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 import { OverlayRuntime } from "@/components/overlay/OverlayRuntime";
 
@@ -22,3 +22,4 @@ export default async function OverlayPage({ params }: { params: { overlayToken: 
 
   return <OverlayRuntime overlayId={token.overlay_id} initialSnapshots={snapshots ?? []} layout={layout} />;
 }
+

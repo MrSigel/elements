@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest, { params }: { params: { viewerToken: string } }) {
@@ -49,3 +49,4 @@ export async function POST(req: NextRequest, { params }: { params: { viewerToken
 
   return NextResponse.json({ ok: true });
 }
+
