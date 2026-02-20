@@ -2,7 +2,16 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 
+const TWITCH_LOGIN_ENABLED = false;
+
 export async function GET(req: NextRequest) {
+  if (!TWITCH_LOGIN_ENABLED) {
+    return NextResponse.json(
+      { error: "twitch_login_disabled", message: "Twitch login is temporarily disabled." },
+      { status: 503 }
+    );
+  }
+
   const state = crypto.randomBytes(16).toString("hex");
   const scopes = [
     "user:read:email",

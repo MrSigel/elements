@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/server";
 
+const TWITCH_LOGIN_ENABLED = false;
+
 type TwitchToken = { access_token: string };
 type TwitchUser = { id: string; login: string; display_name: string; profile_image_url: string };
 
@@ -25,6 +27,13 @@ async function resolveOrCreateAuthUser(admin: ReturnType<typeof createServiceCli
 }
 
 export async function GET(req: NextRequest) {
+  if (!TWITCH_LOGIN_ENABLED) {
+    return NextResponse.json(
+      { error: "twitch_login_disabled", message: "Twitch login is temporarily disabled." },
+      { status: 503 }
+    );
+  }
+
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
   const cookieStore = cookies() as any;
