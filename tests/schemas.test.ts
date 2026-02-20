@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { widgetActionInputSchema } from "@/lib/schemas/widgetActions";
 
 describe("widget action schema", () => {

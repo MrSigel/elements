@@ -1,4 +1,4 @@
-﻿import net from "net";
+import net from "net";
 import { createServiceClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 

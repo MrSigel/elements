@@ -1,4 +1,4 @@
-﻿-- supabase/migrations/20260220181000_antabuse.sql
+-- supabase/migrations/20260220181000_antabuse.sql
 create table if not exists viewer_blacklist (
   id uuid primary key default gen_random_uuid(),
   channel_id uuid not null references channels(id) on delete cascade,

@@ -1,4 +1,4 @@
-﻿import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { FrontpageManager } from "@/components/forms/FrontpageManager";
 import { createServiceClient } from "@/lib/supabase/server";
 

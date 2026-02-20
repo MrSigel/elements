@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 const WIDGET_ACTIONS = [
   { widgetType: "wager_bar", eventType: "set_wager", payload: { value: 50 } },

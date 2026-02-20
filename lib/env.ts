@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 const schema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),

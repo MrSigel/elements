@@ -1,4 +1,4 @@
-﻿-- Full Supabase setup SQL (generated)
+-- Full Supabase setup SQL (generated)
 
 -- ===== BEGIN 20260220161000_init.sql =====
 

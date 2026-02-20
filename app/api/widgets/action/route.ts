@@ -1,4 +1,4 @@
-﻿import crypto from "crypto";
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { widgetActionInputSchema } from "@/lib/schemas/widgetActions";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";

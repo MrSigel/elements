@@ -1,4 +1,4 @@
-﻿-- supabase/migrations/20260220161000_init.sql
+-- supabase/migrations/20260220161000_init.sql
 create extension if not exists pgcrypto;
 
 create type role_type as enum ('owner','moderator');

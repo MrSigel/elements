@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ModInviteForm } from "@/components/forms/ModInviteForm";
 import { PermissionMatrix } from "@/components/forms/PermissionMatrix";

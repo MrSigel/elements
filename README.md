@@ -1,4 +1,4 @@
-﻿# Twitch Overlay Studio
+# Twitch Overlay Studio
 
 Production-ready Next.js + Supabase system for configuring, managing, and publishing Twitch overlay widgets with real persisted state and realtime updates.
 

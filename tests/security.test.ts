@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildIngestSignature, safeCsvCell } from "@/lib/security";
 
 describe("security helpers", () => {
