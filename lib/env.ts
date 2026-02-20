@@ -6,11 +6,11 @@ const schema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_JWT_SECRET: z.string().min(1),
-  TWITCH_CLIENT_ID: z.string().min(1),
-  TWITCH_CLIENT_SECRET: z.string().min(1),
-  TWITCH_REDIRECT_URI: z.string().url(),
-  TWITCH_BOT_OAUTH_TOKEN: z.string().min(1),
-  TWITCH_BOT_USERNAME: z.string().min(1),
+  TWITCH_CLIENT_ID: z.string().optional().default(""),
+  TWITCH_CLIENT_SECRET: z.string().optional().default(""),
+  TWITCH_REDIRECT_URI: z.string().optional().default(""),
+  TWITCH_BOT_OAUTH_TOKEN: z.string().optional().default(""),
+  TWITCH_BOT_USERNAME: z.string().optional().default(""),
   INGEST_SHARED_SECRET: z.string().min(32)
 });
 
@@ -27,4 +27,3 @@ export const env = schema.parse({
   TWITCH_BOT_USERNAME: process.env.TWITCH_BOT_USERNAME,
   INGEST_SHARED_SECRET: process.env.INGEST_SHARED_SECRET
 });
-
