@@ -3,9 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/server";
 
-const TWITCH_LOGIN_ENABLED = false;
+const TWITCH_LOGIN_ENABLED = true;
 
-type TwitchToken = { access_token: string };
+type TwitchToken = {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+  scope?: string[];
+};
 type TwitchUser = { id: string; login: string; display_name: string; profile_image_url: string };
 
 async function resolveOrCreateAuthUser(admin: ReturnType<typeof createServiceClient>, email: string, twitch: TwitchUser) {
@@ -36,7 +41,7 @@ export async function GET(req: NextRequest) {
 
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
-  const cookieStore = cookies() as any;
+  const cookieStore = await cookies();
   const expected = cookieStore?.get?.("tw_state")?.value;
   if (!code || !state || state !== expected) return NextResponse.json({ error: "invalid_oauth_state" }, { status: 400 });
 
@@ -62,6 +67,7 @@ export async function GET(req: NextRequest) {
 
   const admin = createServiceClient();
   const email = `${me.id}@twitch.local`;
+  const expiresAt = token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : null;
 
   try {
     const uid = await resolveOrCreateAuthUser(admin, email, me);
@@ -71,7 +77,11 @@ export async function GET(req: NextRequest) {
       twitch_user_id: me.id,
       twitch_login: me.login,
       twitch_display_name: me.display_name,
-      avatar_url: me.profile_image_url
+      avatar_url: me.profile_image_url,
+      twitch_access_token: token.access_token,
+      twitch_refresh_token: token.refresh_token ?? null,
+      twitch_token_expires_at: expiresAt,
+      twitch_token_scope: token.scope ?? null
     }, { onConflict: "id" });
 
     const { data: channel } = await admin.from("channels").upsert({

@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 
-const TWITCH_LOGIN_ENABLED = false;
+const TWITCH_LOGIN_ENABLED = true;
 
 export async function GET(req: NextRequest) {
   if (!TWITCH_LOGIN_ENABLED) {
@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
   const state = crypto.randomBytes(16).toString("hex");
   const scopes = [
     "user:read:email",
+    "chat:read",
+    "chat:edit",
     "channel:read:subscriptions",
     "moderator:read:chat_messages",
     "moderator:manage:chat_messages"

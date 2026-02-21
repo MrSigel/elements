@@ -13,6 +13,10 @@ create table if not exists users (
   twitch_login text unique not null,
   twitch_display_name text not null,
   avatar_url text,
+  twitch_access_token text,
+  twitch_refresh_token text,
+  twitch_token_expires_at timestamptz,
+  twitch_token_scope text[],
   created_at timestamptz not null default now()
 );
 

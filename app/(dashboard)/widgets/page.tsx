@@ -1,7 +1,5 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { LayoutEditor } from "@/components/dashboard/LayoutEditor";
-import { WidgetInstanceManager } from "@/components/forms/WidgetInstanceManager";
-import { WidgetControlDeck } from "@/components/forms/WidgetControlDeck";
+import { WidgetsTabs } from "@/components/dashboard/WidgetsTabs";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +16,8 @@ export default async function WidgetsPage() {
   return (
     <DashboardShell>
       <div className="space-y-6">
-        <h2 className="text-2xl font-semibold">Widgets + Layout + Live Controls</h2>
-        {overlayId ? <WidgetControlDeck overlayId={overlayId} /> : <p className="text-subtle">Create an overlay first.</p>}
-        {overlayId ? <WidgetInstanceManager overlayId={overlayId} widgets={(instances ?? []) as never[]} /> : null}
-        {overlayId ? <LayoutEditor overlayId={overlayId} initial={instances ?? []} /> : null}
+        <h2 className="text-2xl font-semibold">Widgets</h2>
+        {overlayId ? <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} /> : <p className="text-subtle">Create an overlay first.</p>}
       </div>
     </DashboardShell>
   );
