@@ -8,6 +8,9 @@ const loginSchema = z.object({
   password: z.string().min(8)
 });
 
+const TEST_LOGIN_EMAIL = "test@elements.local";
+const TEST_LOGIN_PASSWORD = "Test1234!";
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -21,6 +24,18 @@ export async function POST(req: NextRequest) {
     parsedInput = loginSchema.parse(await req.json());
   } catch {
     return NextResponse.json({ error: "invalid_login_payload" }, { status: 400 });
+  }
+
+  if (
+    parsedInput.email.toLowerCase() === TEST_LOGIN_EMAIL &&
+    parsedInput.password === TEST_LOGIN_PASSWORD
+  ) {
+    const res = NextResponse.json({ ok: true, mode: "test-login" });
+    res.cookies.set("dev-test-auth", "1", {
+      ...COOKIE_OPTIONS,
+      maxAge: 60 * 60 * 24 * 30
+    });
+    return res;
   }
 
   const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {

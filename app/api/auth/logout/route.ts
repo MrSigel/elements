@@ -11,5 +11,6 @@ export async function POST() {
   const res = NextResponse.json({ ok: true });
   res.cookies.set("sb-access-token", "", { ...COOKIE_OPTIONS, maxAge: 0 });
   res.cookies.set("sb-refresh-token", "", { ...COOKIE_OPTIONS, maxAge: 0 });
+  res.cookies.set("dev-test-auth", "", { ...COOKIE_OPTIONS, maxAge: 0 });
   return res;
 }

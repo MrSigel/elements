@@ -26,6 +26,7 @@ export function AuthGateway({ nextPath }: AuthGatewayProps) {
   const submitLabel = useMemo(() => {
     return mode === "login" ? "Sign In" : "Create Account";
   }, [mode]);
+  const twitchAuthUrl = `/api/auth/twitch/start?next=${encodeURIComponent(nextPath)}`;
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -177,6 +178,25 @@ export function AuthGateway({ nextPath }: AuthGatewayProps) {
             {pending ? "Please wait..." : submitLabel}
           </motion.button>
         </form>
+
+        <div className="mt-6">
+          <p className="mb-3 text-xs uppercase tracking-[0.16em] text-subtle">Optional</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <a
+              href={twitchAuthUrl}
+              className="rounded-lg border border-accent/25 bg-accent/5 px-4 py-3 text-sm font-medium text-text hover:border-accent/45 transition-colors duration-300 text-center"
+            >
+              Continue with Twitch
+            </a>
+            <button
+              type="button"
+              disabled
+              className="rounded-lg border border-accent/15 bg-accent/5 px-4 py-3 text-sm font-medium text-subtle/70 text-center cursor-not-allowed"
+            >
+              Continue with Discord (Soon)
+            </button>
+          </div>
+        </div>
 
         {/* Footer Link */}
         <motion.div

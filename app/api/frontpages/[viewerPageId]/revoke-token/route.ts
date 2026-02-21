@@ -10,7 +10,7 @@ async function pageChannel(viewerPageId: string) {
 }
 
 export async function POST(_: Request, { params }: any) {
-  const userClient = createServerClient();
+  const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

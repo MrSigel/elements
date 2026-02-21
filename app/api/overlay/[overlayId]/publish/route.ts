@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, { params }: any) {
   const parsed = publishOverlaySchema.safeParse({ ...(await req.json()), overlayId: params.overlayId });
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const client = createServerClient();
+  const client = await createServerClient();
   const { data: auth } = await client.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

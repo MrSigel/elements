@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const parsed = widgetInstanceCreateSchema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const userClient = createServerClient();
+  const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -34,5 +34,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 
 

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 type OverlayRow = {
   id: string;
@@ -31,6 +32,7 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
               <p className="text-xs text-subtle font-mono break-all">{o.overlay_tokens?.[0]?.public_token ?? "No token"}</p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Link href={`/overlay-preview/${o.id}`} className="rounded bg-panelMuted px-3 py-2">Preview</Link>
               <button onClick={() => publish(o.id, !o.is_published)} className="rounded bg-panelMuted px-3 py-2">{o.is_published ? "Unpublish" : "Publish"}</button>
               <button onClick={() => rotate(o.id)} className="rounded bg-panelMuted px-3 py-2">Rotate Token</button>
               <button onClick={() => revoke(o.id)} className="rounded bg-panelMuted px-3 py-2">Revoke Token</button>

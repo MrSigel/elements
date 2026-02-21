@@ -13,7 +13,7 @@ async function widgetChannel(widgetInstanceId: string) {
 
 export async function PATCH(req: NextRequest, { params }: any) {
   const body = await req.json();
-  const userClient = createServerClient();
+  const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: any) {
 }
 
 export async function DELETE(_: NextRequest, { params }: any) {
-  const userClient = createServerClient();
+  const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

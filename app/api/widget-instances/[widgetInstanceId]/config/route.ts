@@ -16,7 +16,7 @@ export async function PUT(req: NextRequest, { params }: any) {
   const parsed = widgetConfigUpsertSchema.safeParse({ ...(await req.json()), widgetInstanceId: params.widgetInstanceId });
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const userClient = createServerClient();
+  const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

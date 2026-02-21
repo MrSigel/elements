@@ -4,7 +4,7 @@ import { AuthzError, requireChannelPermission } from "@/lib/authz";
 import { safeCsvCell } from "@/lib/security";
 
 export async function GET() {
-  const userClient = createServerClient();
+  const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -25,5 +25,6 @@ export async function GET() {
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
+
 
 
