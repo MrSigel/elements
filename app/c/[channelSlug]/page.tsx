@@ -33,17 +33,19 @@ export default async function ChannelLandingPage({ params }: { params: Promise<{
     <main className="min-h-screen bg-[#0a0d14] text-white">
       <header className="border-b border-[#2a3142] bg-[#0d1320] px-6 py-3">
         <div className="mx-auto max-w-6xl flex items-center justify-between">
-          <p className="font-bold tracking-wide">{channel.title}</p>
+          <p className="font-bold tracking-wide">Elements</p>
           <nav className="flex gap-4 text-sm text-slate-300">
-            <a href="#offers">Offers</a>
-            <a href="#frontpages">Frontpages</a>
+            <a href="#startseite">Startseite</a>
+            <a href="#hunt">Hunt</a>
+            <a href="#giveaway">Giveaway</a>
+            <a href="#frontpage">Frontpage</a>
           </nav>
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl px-6 py-8">
-        <div id="offers" className="rounded-xl border border-[#2a3142] bg-[#111827] p-4">
-          <h2 className="text-lg font-semibold mb-3">Current Offers</h2>
+      <section id="startseite" className="mx-auto max-w-6xl px-6 py-8">
+        <div id="hunt" className="rounded-xl border border-[#2a3142] bg-[#111827] p-4">
+          <h2 className="text-lg font-semibold mb-3">Hunt</h2>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-slate-300">
@@ -66,8 +68,13 @@ export default async function ChannelLandingPage({ params }: { params: Promise<{
           </table>
         </div>
 
-        <div id="frontpages" className="mt-6 rounded-xl border border-[#2a3142] bg-[#111827] p-4">
-          <h2 className="text-lg font-semibold mb-3">Available Frontpages</h2>
+        <div id="giveaway" className="mt-6 rounded-xl border border-[#2a3142] bg-[#111827] p-4">
+          <h2 className="text-lg font-semibold mb-2">Giveaway</h2>
+          <p className="text-sm text-slate-400">Giveaway section can be configured by the streamer.</p>
+        </div>
+
+        <div id="frontpage" className="mt-6 rounded-xl border border-[#2a3142] bg-[#111827] p-4">
+          <h2 className="text-lg font-semibold mb-3">Frontpage</h2>
           {links.length === 0 ? (
             <p className="text-sm text-slate-400">No public frontpages yet.</p>
           ) : (
@@ -88,4 +95,3 @@ export default async function ChannelLandingPage({ params }: { params: Promise<{
     </main>
   );
 }
-
