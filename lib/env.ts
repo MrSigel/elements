@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+function clean(value: string | undefined) {
+  if (typeof value !== "string") return value;
+  return value.trim().replace(/^["']|["']$/g, "");
+}
+
 const schema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -15,15 +20,15 @@ const schema = z.object({
 });
 
 export const env = schema.parse({
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
-  TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID,
-  TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET,
-  TWITCH_REDIRECT_URI: process.env.TWITCH_REDIRECT_URI,
-  TWITCH_BOT_OAUTH_TOKEN: process.env.TWITCH_BOT_OAUTH_TOKEN,
-  TWITCH_BOT_USERNAME: process.env.TWITCH_BOT_USERNAME,
-  INGEST_SHARED_SECRET: process.env.INGEST_SHARED_SECRET
+  NEXT_PUBLIC_APP_URL: clean(process.env.NEXT_PUBLIC_APP_URL),
+  NEXT_PUBLIC_SUPABASE_URL: clean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: clean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+  SUPABASE_SERVICE_ROLE_KEY: clean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+  SUPABASE_JWT_SECRET: clean(process.env.SUPABASE_JWT_SECRET),
+  TWITCH_CLIENT_ID: clean(process.env.TWITCH_CLIENT_ID),
+  TWITCH_CLIENT_SECRET: clean(process.env.TWITCH_CLIENT_SECRET),
+  TWITCH_REDIRECT_URI: clean(process.env.TWITCH_REDIRECT_URI),
+  TWITCH_BOT_OAUTH_TOKEN: clean(process.env.TWITCH_BOT_OAUTH_TOKEN),
+  TWITCH_BOT_USERNAME: clean(process.env.TWITCH_BOT_USERNAME),
+  INGEST_SHARED_SECRET: clean(process.env.INGEST_SHARED_SECRET)
 });

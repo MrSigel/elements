@@ -1,0 +1,27 @@
+import { redirect } from "next/navigation";
+import { AuthGateway } from "@/components/auth/AuthGateway";
+import { createServerClient } from "@/lib/supabase/server";
+
+type AuthPageProps = {
+  searchParams?: Promise<{ next?: string | string[] }>;
+};
+
+function sanitizeNext(nextPath: string | undefined) {
+  if (!nextPath || !nextPath.startsWith("/")) return "/overlays";
+  if (nextPath.startsWith("/auth")) return "/overlays";
+  return nextPath;
+}
+
+export default async function AuthPage({ searchParams }: AuthPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const rawNext = Array.isArray(resolvedSearchParams?.next) ? resolvedSearchParams?.next[0] : resolvedSearchParams?.next;
+  const nextPath = sanitizeNext(rawNext);
+  const client = createServerClient();
+  const { data } = await client.auth.getUser();
+
+  if (data.user) {
+    redirect(nextPath);
+  }
+
+  return <AuthGateway nextPath={nextPath} />;
+}
