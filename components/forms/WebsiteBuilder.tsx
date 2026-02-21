@@ -15,10 +15,6 @@ type WindowRect = { x: number; y: number; width: number; height: number };
 
 type WebsiteModel = {
   brandName: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  ctaLabel: string;
-  ctaUrl: string;
   deals: Deal[];
   socials: Social[];
   offersWindow: WindowRect;
@@ -29,10 +25,6 @@ const STORAGE_KEY = "elements.website.builder.v2";
 
 const DEFAULT_MODEL: WebsiteModel = {
   brandName: "ELEMENTS",
-  heroTitle: "Your Stream. Your Casino Hub.",
-  heroSubtitle: "Create a clean landing page with your casino deals, bonus codes and stream links.",
-  ctaLabel: "Watch Live",
-  ctaUrl: "https://twitch.tv/",
   deals: [
     { casinoName: "Casino One", casinoUrl: "https://example.com", wager: "35x", bonusCode: "WELCOME100", actionAfterSignup: "Deposit 20$ to unlock bonus" }
   ],
@@ -119,7 +111,7 @@ function DragResizeWindow({
   );
 }
 
-export function WebsiteBuilder() {
+export function WebsiteBuilder({ publicUrl }: { publicUrl?: string }) {
   const [model, setModel] = useState<WebsiteModel>(DEFAULT_MODEL);
 
   useEffect(() => {
@@ -162,30 +154,38 @@ export function WebsiteBuilder() {
       <section className="rounded-xl border border-panelMuted bg-panel p-4 space-y-4">
         <h3 className="text-lg font-semibold">Website Editor</h3>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <label className="text-xs text-subtle">Brand Name</label>
-            <input value={model.brandName} onChange={(e) => update("brandName", e.target.value)} className="w-full rounded bg-panelMuted px-3 py-2" />
+        <div className="space-y-2">
+          <label className="text-xs text-subtle">Brand Name</label>
+          <input value={model.brandName} onChange={(e) => update("brandName", e.target.value)} className="w-full rounded bg-panelMuted px-3 py-2" />
+        </div>
+
+        {publicUrl ? (
+          <div className="rounded border border-panelMuted bg-panelMuted/40 p-3">
+            <p className="text-xs text-subtle mb-1">Your landing page link</p>
+            <a href={publicUrl} target="_blank" rel="noreferrer" className="text-sm text-accent underline break-all">
+              {publicUrl}
+            </a>
           </div>
-          <div className="space-y-2">
-            <label className="text-xs text-subtle">CTA Label</label>
-            <input value={model.ctaLabel} onChange={(e) => update("ctaLabel", e.target.value)} className="w-full rounded bg-panelMuted px-3 py-2" />
-          </div>
-        </div>
+        ) : null}
 
         <div className="space-y-2">
-          <label className="text-xs text-subtle">Hero Title</label>
-          <input value={model.heroTitle} onChange={(e) => update("heroTitle", e.target.value)} className="w-full rounded bg-panelMuted px-3 py-2" />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs text-subtle">Hero Subtitle</label>
-          <textarea value={model.heroSubtitle} onChange={(e) => update("heroSubtitle", e.target.value)} className="w-full rounded bg-panelMuted px-3 py-2 min-h-20" />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs text-subtle">CTA URL</label>
-          <input value={model.ctaUrl} onChange={(e) => update("ctaUrl", e.target.value)} className="w-full rounded bg-panelMuted px-3 py-2" />
+          <label className="text-xs text-subtle">Navigation Links (Label|URL, one per line)</label>
+          <textarea
+            value={model.socials.map((s) => `${s.label}|${s.url}`).join("\n")}
+            onChange={(e) => {
+              const next = e.target.value
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                  const [label, url] = line.split("|");
+                  return { label: (label ?? "").trim(), url: (url ?? "").trim() };
+                })
+                .filter((s) => s.label && s.url);
+              update("socials", next);
+            }}
+            className="w-full rounded bg-panelMuted px-3 py-2 min-h-20"
+          />
         </div>
 
         <div className="space-y-2">
@@ -211,26 +211,6 @@ export function WebsiteBuilder() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-xs text-subtle">Social Links (Label|URL, one per line)</label>
-          <textarea
-            value={model.socials.map((s) => `${s.label}|${s.url}`).join("\n")}
-            onChange={(e) => {
-              const next = e.target.value
-                .split("\n")
-                .map((line) => line.trim())
-                .filter(Boolean)
-                .map((line) => {
-                  const [label, url] = line.split("|");
-                  return { label: (label ?? "").trim(), url: (url ?? "").trim() };
-                })
-                .filter((s) => s.label && s.url);
-              update("socials", next);
-            }}
-            className="w-full rounded bg-panelMuted px-3 py-2 min-h-20"
-          />
-        </div>
-
         <details className="rounded border border-panelMuted bg-panelMuted/40 p-2">
           <summary className="cursor-pointer text-sm font-medium">Export JSON</summary>
           <pre className="mt-2 text-xs overflow-auto">{exportJson}</pre>
@@ -242,9 +222,9 @@ export function WebsiteBuilder() {
           <div className="flex items-center justify-between">
             <p className="font-bold tracking-wide text-white">{model.brandName}</p>
             <nav className="flex gap-4 text-sm text-slate-300">
-              <a href="#offers">Offers</a>
-              <a href="#stream">Stream</a>
-              <a href="#contact">Contact</a>
+              {model.socials.map((s) => (
+                <a key={s.label} href={s.url} target="_blank" rel="noreferrer">{s.label}</a>
+              ))}
             </nav>
           </div>
         </header>
@@ -252,14 +232,6 @@ export function WebsiteBuilder() {
         <div className="relative h-[720px]">
           <div className="absolute inset-0 bg-gradient-to-br from-[#17101f] via-[#0f1320] to-[#2d0f13]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,196,81,.14),transparent_50%)]" />
-
-          <div className="relative z-10 px-8 pt-10">
-            <h2 className="text-4xl font-black text-white max-w-3xl">{model.heroTitle}</h2>
-            <p className="mt-3 max-w-2xl text-slate-300">{model.heroSubtitle}</p>
-            <a href={model.ctaUrl} target="_blank" rel="noreferrer" className="inline-block mt-5 rounded-lg bg-gradient-to-r from-amber-300 to-rose-600 px-6 py-3 font-semibold text-black">
-              {model.ctaLabel}
-            </a>
-          </div>
 
           <DragResizeWindow title="Current Offers" rect={model.offersWindow} onChange={(next) => update("offersWindow", next)}>
             <div className="overflow-auto">
@@ -310,4 +282,3 @@ export function WebsiteBuilder() {
     </div>
   );
 }
-
