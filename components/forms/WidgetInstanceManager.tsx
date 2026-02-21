@@ -3,6 +3,11 @@
 import { useState } from "react";
 
 const kinds = ["wager_bar","deposit_withdrawal","current_playing","bonushunt","tournament","slot_battle","slot_requests","hot_words","wheel","personal_bests","quick_guessing","loyalty","points_battle"];
+const DEFAULT_WIDTH = 300;
+const DEFAULT_HEIGHT = 180;
+const GAP_X = 28;
+const GAP_Y = 28;
+const GRID_COLUMNS = 4;
 
 type Widget = { id: string; kind: string; name: string; x: number; y: number; width: number; height: number; is_enabled: boolean; widget_configs?: { config: Record<string, unknown> }[] };
 
@@ -10,12 +15,36 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
   const [name, setName] = useState("New Widget");
   const [kind, setKind] = useState(kinds[0]);
 
+  function nextGridPosition(index: number) {
+    const col = index % GRID_COLUMNS;
+    const row = Math.floor(index / GRID_COLUMNS);
+    return {
+      x: col * (DEFAULT_WIDTH + GAP_X),
+      y: row * (DEFAULT_HEIGHT + GAP_Y)
+    };
+  }
+
   async function createWidget() {
+    const pos = nextGridPosition(widgets.length);
     await fetch("/api/widget-instances", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ overlayId, kind, name, x: 0, y: 0, width: 300, height: 180 })
+      body: JSON.stringify({ overlayId, kind, name, x: pos.x, y: pos.y, width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT })
     });
+    location.reload();
+  }
+
+  async function autoArrangeAll() {
+    await Promise.all(
+      widgets.map((w, i) => {
+        const pos = nextGridPosition(i);
+        return fetch(`/api/widget-instances/${w.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ x: pos.x, y: pos.y, width: w.width || DEFAULT_WIDTH, height: w.height || DEFAULT_HEIGHT })
+        });
+      })
+    );
     location.reload();
   }
 
@@ -57,6 +86,7 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
         </select>
         <input className="rounded bg-panelMuted px-3 py-2" value={name} onChange={(e) => setName(e.target.value)} />
         <button onClick={createWidget} className="rounded bg-accent text-black px-3 py-2">Add Widget</button>
+        <button onClick={autoArrangeAll} className="rounded bg-panelMuted px-3 py-2">Auto Arrange</button>
       </div>
       {widgets.map((w) => (
         <div key={w.id} className="rounded-lg border border-panelMuted bg-panel p-3">
