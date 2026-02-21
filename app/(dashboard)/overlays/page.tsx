@@ -1,17 +1,32 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { OverlayCreateForm } from "@/components/forms/OverlayCreateForm";
 import { OverlayTable } from "@/components/forms/OverlayTable";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createServerClient, createServiceClient } from "@/lib/supabase/server";
+import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function OverlaysPage() {
+  const userClient = await createServerClient();
+  const { data: auth } = await userClient.auth.getUser();
+  if (!auth.user) {
+    return (
+      <DashboardShell>
+        <p className="text-subtle">Unauthorized.</p>
+      </DashboardShell>
+    );
+  }
+
+  const channelIds = await getAccessibleChannelIds(auth.user.id);
   const admin = createServiceClient();
-  const { data: overlays } = await admin
-    .from("overlays")
-    .select("id,name,is_published,width,height,overlay_tokens(public_token,revoked)")
-    .order("created_at", { ascending: false });
+  const { data: overlays } = channelIds.length
+    ? await admin
+        .from("overlays")
+        .select("id,name,is_published,width,height,overlay_tokens(public_token,revoked)")
+        .in("channel_id", channelIds)
+        .order("created_at", { ascending: false })
+    : { data: [] as never[] };
 
   return (
     <DashboardShell>

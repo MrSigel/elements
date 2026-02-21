@@ -1,16 +1,30 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createServerClient, createServiceClient } from "@/lib/supabase/server";
+import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function LogsPage() {
+  const userClient = await createServerClient();
+  const { data: auth } = await userClient.auth.getUser();
+  if (!auth.user) {
+    return (
+      <DashboardShell>
+        <p className="text-subtle">Unauthorized.</p>
+      </DashboardShell>
+    );
+  }
+
+  const channelIds = await getAccessibleChannelIds(auth.user.id);
   const admin = createServiceClient();
-  const [{ data: logs }, { data: events }] = await Promise.all([
-    admin.from("audit_logs").select("action,created_at,metadata").order("created_at", { ascending: false }).limit(100),
-    admin.from("widget_events").select("event_type,widget_type,created_at,payload").order("created_at", { ascending: false }).limit(100)
-  ]);
+  const [{ data: logs }, { data: events }] = channelIds.length
+    ? await Promise.all([
+        admin.from("audit_logs").select("action,created_at,metadata").in("channel_id", channelIds).order("created_at", { ascending: false }).limit(100),
+        admin.from("widget_events").select("event_type,widget_type,created_at,payload").in("channel_id", channelIds).order("created_at", { ascending: false }).limit(100)
+      ])
+    : [{ data: [] as never[] }, { data: [] as never[] }];
 
   return (
     <DashboardShell>

@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { overlayCreateSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
+import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
 
 export async function GET() {
+  const userClient = await createServerClient();
+  const { data: auth } = await userClient.auth.getUser();
+  if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const channelIds = await getAccessibleChannelIds(auth.user.id);
+  if (channelIds.length === 0) return NextResponse.json({ overlays: [] });
+
   const admin = createServiceClient();
-  const { data } = await admin.from("overlays").select("id,name,width,height,is_published,channel_id,overlay_tokens(public_token,revoked)").order("created_at", { ascending: false });
+  const { data } = await admin
+    .from("overlays")
+    .select("id,name,width,height,is_published,channel_id,overlay_tokens(public_token,revoked)")
+    .in("channel_id", channelIds)
+    .order("created_at", { ascending: false });
   return NextResponse.json({ overlays: data ?? [] });
 }
 

@@ -1,13 +1,27 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { WidgetsTabs } from "@/components/dashboard/WidgetsTabs";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createServerClient, createServiceClient } from "@/lib/supabase/server";
+import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function WidgetsPage() {
+  const userClient = await createServerClient();
+  const { data: auth } = await userClient.auth.getUser();
+  if (!auth.user) {
+    return (
+      <DashboardShell>
+        <p className="text-subtle">Unauthorized.</p>
+      </DashboardShell>
+    );
+  }
+
+  const channelIds = await getAccessibleChannelIds(auth.user.id);
   const admin = createServiceClient();
-  const { data: overlays } = await admin.from("overlays").select("id").limit(1);
+  const { data: overlays } = channelIds.length
+    ? await admin.from("overlays").select("id").in("channel_id", channelIds).order("created_at", { ascending: false }).limit(1)
+    : { data: [] as never[] };
   const overlayId = overlays?.[0]?.id;
   const { data: instances } = overlayId
     ? await admin.from("widget_instances").select("id,kind,name,x,y,width,height,layer_index,is_enabled,widget_configs(config)").eq("overlay_id", overlayId).order("layer_index")
