@@ -18,7 +18,7 @@ export function FrontpageManager({ overlays, pages }: { overlays: { id: string; 
     <div className="space-y-4">
       <div className="rounded-lg border border-panelMuted bg-panel p-3 flex gap-2">
         <select className="rounded bg-panelMuted px-3 py-2" value={overlayId} onChange={(e) => setOverlayId(e.target.value)}>{overlays.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select>
-        <select className="rounded bg-panelMuted px-3 py-2" value={pageType} onChange={(e) => setPageType(e.target.value)}><option value="bonushunt">Bonushunt</option><option value="tournament">Tournament</option><option value="requests">Requests</option></select>
+        <select className="rounded bg-panelMuted px-3 py-2" value={pageType} onChange={(e) => setPageType(e.target.value)}><option value="bonushunt">Bonushunt</option><option value="tournament">Tournament</option><option value="requests">Requests</option><option value="loyalty">Loyalty Store</option><option value="battle">Points Battle</option></select>
         <button onClick={createPage} className="rounded bg-accent text-black px-3 py-2">Create Frontpage</button>
       </div>
       {pages.map((p) => (

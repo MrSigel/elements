@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/internal/bots/restart",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

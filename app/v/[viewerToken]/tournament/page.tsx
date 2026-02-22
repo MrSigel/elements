@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
+import { RealtimeRefresher } from "@/components/ui/RealtimeRefresher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -30,6 +31,7 @@ export default async function ViewerTournamentPage({ params }: { params: Promise
 
   return (
     <main className="min-h-screen p-6 max-w-2xl mx-auto">
+      <RealtimeRefresher overlayId={page.overlay_id} />
       <h1 className="text-3xl font-semibold mb-4">{tournament?.name ?? "Tournament"}</h1>
       <div className="space-y-2">
         {scores.map((s, i) => (

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { widgetActionInputSchema } from "@/lib/schemas/widgetActions";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, getOverlayChannelId, requireChannelPermission } from "@/lib/authz";
+import { ensureBotStarted } from "@/lib/twitch/bot";
 
 async function latestOrCreateBattle(admin: ReturnType<typeof createServiceClient>, channelId: string, overlayId: string) {
   const { data: latest } = await admin.from("slot_battles").select("id").eq("channel_id", channelId).eq("overlay_id", overlayId).order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -66,6 +67,8 @@ async function applyWidgetSideEffects(admin: ReturnType<typeof createServiceClie
   }
 
   if (input.widgetType === "slot_requests") {
+    const { data: srCh } = await admin.from("channels").select("slug").eq("id", input.channelId).maybeSingle();
+    if (srCh?.slug) await ensureBotStarted(srCh.slug);
     if (input.eventType === "request_add") {
       await admin.from("slot_requests").insert({ channel_id: input.channelId, twitch_user_id: String(input.payload.twitch_user_id ?? "anon"), slot_name: String(input.payload.slot_name ?? "Unknown") });
     }
@@ -95,6 +98,8 @@ async function applyWidgetSideEffects(admin: ReturnType<typeof createServiceClie
   }
 
   if (input.widgetType === "loyalty") {
+    const { data: loyaltyCh } = await admin.from("channels").select("slug").eq("id", input.channelId).maybeSingle();
+    if (loyaltyCh?.slug) await ensureBotStarted(loyaltyCh.slug);
     if (input.eventType === "points_grant") {
       await admin.from("points_ledger").insert({ channel_id: input.channelId, twitch_user_id: String(input.payload.twitch_user_id ?? "anon"), points_delta: Number(input.payload.points ?? 0), reason: String(input.payload.reason ?? "manual_grant"), metadata: input.payload.metadata ?? {} });
     }
@@ -111,6 +116,8 @@ async function applyWidgetSideEffects(admin: ReturnType<typeof createServiceClie
     const pbId = await latestOrCreatePointsBattle(admin, input.channelId, input.overlayId);
     if (pbId) {
       if (input.eventType === "points_battle_start") {
+        const { data: pbCh } = await admin.from("channels").select("slug").eq("id", input.channelId).maybeSingle();
+        if (pbCh?.slug) await ensureBotStarted(pbCh.slug);
         await admin.from("points_battles").update({ team_a: String(input.payload.team_a ?? "A"), team_b: String(input.payload.team_b ?? "B"), entry_cost: Number(input.payload.entry_cost ?? 10), status: "running", ends_at: new Date(Date.now() + Number(input.payload.duration_seconds ?? 300) * 1000).toISOString() }).eq("id", pbId);
       }
       if (input.eventType === "points_battle_join") {
@@ -120,6 +127,11 @@ async function applyWidgetSideEffects(admin: ReturnType<typeof createServiceClie
         await admin.from("points_battles").update({ status: "finished" }).eq("id", pbId);
       }
     }
+  }
+
+  if (input.widgetType === "quick_guessing" && input.eventType === "guessing_open") {
+    const { data: channel } = await admin.from("channels").select("slug").eq("id", input.channelId).maybeSingle();
+    if (channel?.slug) await ensureBotStarted(channel.slug);
   }
 }
 

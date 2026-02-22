@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import Image from "next/image";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 
 interface HomePageContentProps {
@@ -11,583 +12,669 @@ interface HomePageContentProps {
   workflow: Array<{ id: string; title: string; text: string }>;
 }
 
-export function HomePageContent({
-  isLoggedIn,
-  features,
-  workflow
-}: HomePageContentProps) {
-  const [activePreview, setActivePreview] = useState<"overlays" | "viewer-pages" | "moderation">("overlays");
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+const WIDGETS = [
+  { src: "/overlay/bonushunt.webp", label: "Bonus Hunt Tracker" },
+  { src: "/overlay/slot_vs_slot_battles.png", label: "Slot vs Slot Battles" },
+  { src: "/overlay/viewer_tournaments.webp", label: "Viewer Tournaments" },
+  { src: "/overlay/quick_fuesses_twitch.webp", label: "Quick Guessing" },
+  { src: "/overlay/slot_requests.png", label: "Slot Requests" },
+  { src: "/overlay/slot_requests_finish.webp", label: "Request Results" },
+  { src: "/overlay/current_playing.webp", label: "Now Playing" },
+  { src: "/overlay/hot_words.png", label: "Hot Words Scanner" },
+];
 
-  const previewTabs = [
-    {
-      id: "overlays" as const,
-      title: "Overlays",
-      description: "Build, duplicate and publish OBS-ready overlays with tokenized URLs and instant actions."
-    },
-    {
-      id: "viewer-pages" as const,
-      title: "Viewer Pages",
-      description: "Create casino front pages with your offers, current bonus hunts and dynamic content blocks."
-    },
-    {
-      id: "moderation" as const,
-      title: "Moderation",
-      description: "Assign roles, control permissions and track events through exportable logs."
-    }
-  ];
+const MARQUEE_ITEMS = [
+  "Bonus Hunts",
+  "Live Overlays",
+  "Viewer Loyalty",
+  "Slot Battles",
+  "Quick Guessing",
+  "Tournament Mode",
+  "Hot Words",
+  "Request System",
+  "OBS Ready",
+  "Realtime Sync",
+  "Twitch Bot",
+  "Points System",
+];
 
-  const faqItems = [
-    {
-      q: "How fast can I go live with an overlay?",
-      a: "Most channels are live in under 5 minutes: create overlay, publish, copy browser source URL, paste into OBS."
-    },
-    {
-      q: "Do I need technical setup knowledge?",
-      a: "No advanced setup is required. The dashboard guides each step and keeps token management simple."
-    },
-    {
-      q: "Can I control moderator permissions?",
-      a: "Yes. Permissions are role-based, so mods only get access to actions you explicitly allow."
-    },
-    {
-      q: "Can I test before paying?",
-      a: "Yes. Start with the free flow and upgrade when you need more scale and advanced controls."
-    }
+const FAQ_ITEMS = [
+  {
+    q: "How fast can I go live with an overlay?",
+    a: "Most channels are live in under 5 minutes: create overlay, publish, copy browser source URL, paste into OBS.",
+  },
+  {
+    q: "Do I need technical knowledge to set up?",
+    a: "No advanced setup is required. The dashboard guides each step and keeps token management simple.",
+  },
+  {
+    q: "Can I control what moderators can do?",
+    a: "Yes. Permissions are role-based, so mods only get access to actions you explicitly allow.",
+  },
+  {
+    q: "Does the Twitch bot work automatically?",
+    a: "Yes. Once you connect Twitch, the bot listens to your chat and handles !guess, !join, !points, !redeem, and more automatically.",
+  },
+  {
+    q: "Can I try before paying?",
+    a: "Yes. Start with the free tier and upgrade when you need more scale and advanced controls.",
+  },
+];
+
+function Widget3DCard({ src, label, index }: { src: string; label: string; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotX = useTransform(my, [-60, 60], [8, -8]);
+  const rotY = useTransform(mx, [-60, 60], [-8, 8]);
+
+  function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mx.set(e.clientX - rect.left - rect.width / 2);
+    my.set(e.clientY - rect.top - rect.height / 2);
+  }
+
+  function onMouseLeave() {
+    mx.set(0);
+    my.set(0);
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 700 }}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ delay: index * 0.07, duration: 0.5 }}
+      className="group relative overflow-hidden rounded-xl border border-accent/25 bg-bg-deep cursor-pointer shadow-lg"
+    >
+      <div className="absolute inset-0 z-10 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="absolute inset-0 z-10 rounded-xl ring-0 ring-accent/0 group-hover:ring-1 group-hover:ring-accent/50 transition-all duration-300 pointer-events-none" />
+      <Image
+        src={src}
+        alt={label}
+        width={700}
+        height={420}
+        className="w-full h-auto object-cover"
+        priority={index < 4}
+      />
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-deep via-bg-deep/70 to-transparent px-3 py-3 z-20">
+        <p className="text-sm font-bold text-accent tracking-wide">{label}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function HeroStack() {
+  const CARDS = [
+    { src: "/overlay/bonushunt.webp", rot: "-3deg", delay: 0, offset: "0px" },
+    { src: "/overlay/slot_vs_slot_battles.png", rot: "2.5deg", delay: 0.5, offset: "22px" },
+    { src: "/overlay/viewer_tournaments.webp", rot: "-5deg", delay: 1, offset: "44px" },
   ];
 
   return (
-    <div className="min-h-screen bg-bg text-text overflow-hidden relative">
+    <div className="relative h-[340px] md:h-[440px] w-full" style={{ perspective: "1000px" }}>
+      {CARDS.map((card, i) => (
+        <motion.div
+          key={i}
+          className="absolute left-0 right-0 mx-auto max-w-[480px] rounded-2xl overflow-hidden border border-accent/30 shadow-2xl"
+          style={{
+            rotate: card.rot,
+            zIndex: CARDS.length - i,
+            top: card.offset,
+            boxShadow:
+              i === 0 ? "0 0 80px rgba(245,196,81,0.15), 0 20px 60px rgba(0,0,0,0.5)" : "0 10px 40px rgba(0,0,0,0.4)",
+          }}
+          animate={{ y: [0, -14, 0] }}
+          transition={{
+            repeat: Infinity,
+            duration: 4 + i * 0.9,
+            delay: card.delay,
+            ease: "easeInOut",
+          }}
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+        >
+          <Image
+            src={card.src}
+            alt="Widget preview"
+            width={700}
+            height={420}
+            className="w-full h-auto object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+export function HomePageContent({ isLoggedIn, features, workflow }: HomePageContentProps) {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  return (
+    <div className="min-h-screen text-text overflow-hidden relative">
       <AnimatedBackground />
+
+      {/* ── NAV ── */}
       <motion.header
-        className="relative border-b border-accent/20 backdrop-blur-xl bg-bg/80 z-20"
+        className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-xl bg-black/30"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 md:px-10">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 md:px-10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center shadow-lg shadow-accent/30">
+              <span className="text-black font-black text-sm">E</span>
             </div>
-            <span className="text-lg font-bold tracking-wider">ELEMENTS</span>
+            <span className="text-base font-black tracking-[0.15em] uppercase">Elements</span>
           </div>
-          <nav className="flex items-center gap-6 md:gap-8">
-            <Link href="#features" className="text-sm text-subtle hover:text-accent transition-colors duration-300">
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#widgets" className="text-sm text-subtle hover:text-accent transition-colors">
+              Widgets
+            </a>
+            <a href="#features" className="text-sm text-subtle hover:text-accent transition-colors">
               Features
-            </Link>
-            <Link href="#benefits" className="text-sm text-subtle hover:text-accent transition-colors duration-300">
-              Benefits
-            </Link>
+            </a>
+            <a href="#pricing" className="text-sm text-subtle hover:text-accent transition-colors">
+              Pricing
+            </a>
             <Link
               href={isLoggedIn ? "/overlays" : "/auth"}
-              className="px-6 py-2.5 bg-gradient-to-r from-accent to-rose-700 rounded-lg font-semibold text-black hover:shadow-lg hover:shadow-accent/50 transition-all duration-300"
+              className="px-5 py-2 rounded-lg font-black text-black text-sm hover:shadow-lg hover:shadow-accent/40 hover:scale-105 transition-all"
+              style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
             >
               {isLoggedIn ? "Dashboard" : "Get Started"}
             </Link>
           </nav>
+          <Link
+            href={isLoggedIn ? "/overlays" : "/auth"}
+            className="md:hidden px-4 py-1.5 rounded-lg font-bold text-black text-sm"
+            style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+          >
+            {isLoggedIn ? "Dashboard" : "Get Started"}
+          </Link>
         </div>
       </motion.header>
 
-      <main className="mx-auto w-full px-6 md:px-10 relative z-10">
-        {/* Hero Section */}
-        <motion.section
-          className="max-w-6xl mx-auto py-16 md:py-28 grid md:grid-cols-2 gap-8 md:gap-12 items-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
+      <main className="relative z-10">
+        {/* ── HERO ── */}
+        <section className="mx-auto max-w-7xl px-5 md:px-10 pt-16 pb-8 md:pt-24 md:pb-12 grid md:grid-cols-2 gap-12 md:gap-8 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            <div className="inline-block mb-4 px-3 py-1.5 border border-accent/40 rounded-full bg-accent/10 backdrop-blur-sm">
-              <span className="text-xs font-semibold text-accent uppercase tracking-wider">All-in-One Solution</span>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-              Manage your <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-amber-300">Casino Streams</span> like a Pro
+            <motion.div
+              className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-accent/40 bg-accent/10"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-xs font-bold text-accent uppercase tracking-widest">Casino Stream Platform</span>
+            </motion.div>
+
+            <h1 className="text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] mb-6">
+              Stream Like a{" "}
+              <span
+                className="text-transparent bg-clip-text"
+                style={{ backgroundImage: "linear-gradient(135deg, #f5c451 0%, #e8a020 40%, #b22234 100%)" }}
+              >
+                High Roller
+              </span>
             </h1>
-            <p className="text-lg text-subtle mb-8 leading-relaxed">
-              Create custom pages and OBS overlays for your viewers. Manage casino offers and bonushunts on one powerful platform.
+
+            <p className="text-lg text-subtle mb-8 leading-relaxed max-w-lg">
+              OBS overlays, Twitch bot, viewer loyalty, slot battles, bonus hunts — all in one platform built for casino
+              streamers.
             </p>
+
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href={isLoggedIn ? "/overlays" : "/auth"}
-                className="px-8 py-3.5 bg-gradient-to-r from-accent to-rose-700 rounded-lg font-bold text-black hover:shadow-xl hover:shadow-accent/40 transition-all duration-300 text-center"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-black text-black text-base shadow-xl hover:shadow-accent/40 hover:scale-105 transition-all duration-300"
+                style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
               >
-                {isLoggedIn ? "Open Dashboard" : "Start Free"}
+                {isLoggedIn ? "Open Dashboard" : "Start For Free"}
+                <span className="text-lg">→</span>
               </Link>
-              <Link
-                href="#features"
-                className="px-8 py-3.5 border-2 border-accent/40 rounded-lg font-semibold text-accent hover:border-accent hover:bg-accent/5 transition-all duration-300 text-center"
+              <a
+                href="#widgets"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent border border-accent/30 hover:border-accent/60 hover:bg-accent/5 transition-all duration-300"
               >
-                Explore Features
-              </Link>
+                See Widgets
+              </a>
+            </div>
+
+            {/* Trust badges */}
+            <div className="mt-10 flex items-center gap-8">
+              {[
+                ["10k+", "Streamers"],
+                ["99.9%", "Uptime"],
+                ["<5min", "Setup"],
+              ].map(([val, label]) => (
+                <div key={label}>
+                  <p className="text-2xl font-black text-accent">{val}</p>
+                  <p className="text-xs text-subtle">{label}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
 
           <motion.div
-            className="relative"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-rose-700/20 rounded-2xl blur-3xl" />
-            <div
-              className="relative w-full max-w-[560px] min-h-[260px] md:ml-auto rounded-2xl border border-accent/30 bg-black overflow-hidden"
-              style={{ aspectRatio: "4 / 3" }}
-            >
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="absolute inset-0 z-10 w-full h-full max-w-full max-h-full object-cover object-center transform-none"
-              >
-                <source src="https://freestock-transcoded-videos-prod.s3.us-east-1.amazonaws.com/transcoded/freestock_v4474997.mp4" type="video/mp4" />
-              </video>
-              {/* Fallback: Animated gradient background if video fails to load */}
-              <div className="absolute inset-0 z-0 bg-gradient-to-br from-accent/20 via-rose-700/15 to-accent/10 animate-pulse" />
-            </div>
+            <HeroStack />
           </motion.div>
-        </motion.section>
+        </section>
 
-        {/* Trust Strip */}
-        <motion.section
-          className="max-w-6xl mx-auto py-8"
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="rounded-2xl border border-accent/20 bg-gradient-to-r from-accent/10 to-rose-700/10 p-5 md:p-6">
-            <div className="grid gap-4 md:grid-cols-[1.2fr_2fr] md:items-center">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-accent font-semibold mb-2">Trusted Streaming Stack</p>
-                <p className="text-sm text-subtle">Built for casino stream workflows, from quick setup to production-level control.</p>
-              </div>
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-lg border border-accent/20 bg-bg/40 px-3 py-3">
-                  <p className="text-2xl font-bold text-accent">10k+</p>
-                  <p className="text-xs text-subtle">Active Streamers</p>
+        {/* ── MARQUEE ── */}
+        <div className="border-y border-accent/10 bg-black/20 backdrop-blur-sm py-3 overflow-hidden my-8">
+          <style>{`
+            @keyframes marqueeScroll {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .marquee-track {
+              animation: marqueeScroll 30s linear infinite;
+              display: flex;
+              width: max-content;
+            }
+            .marquee-track:hover { animation-play-state: paused; }
+          `}</style>
+          <div className="marquee-track flex items-center gap-10 whitespace-nowrap">
+            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+              <span key={i} className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-subtle/70">
+                <span className="text-accent text-[10px]">◆</span>
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── WIDGET GALLERY ── */}
+        <section id="widgets" className="mx-auto max-w-7xl px-5 md:px-10 py-20">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent mb-3">14 Overlay Widgets</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Widgets That Do
+              <br />
+              <span
+                className="text-transparent bg-clip-text"
+                style={{ backgroundImage: "linear-gradient(90deg, #f5c451, #e8a020)" }}
+              >
+                The Heavy Lifting
+              </span>
+            </h2>
+            <p className="text-subtle max-w-xl mx-auto">
+              Every widget syncs live with your Twitch chat and dashboard. No page refreshes, no delays.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style={{ perspective: "1200px" }}>
+            {WIDGETS.map((w, i) => (
+              <Widget3DCard key={w.src} src={w.src} label={w.label} index={i} />
+            ))}
+          </div>
+        </section>
+
+        {/* ── FEATURES GRID ── */}
+        <section id="features" className="mx-auto max-w-7xl px-5 md:px-10 py-20">
+          <motion.div
+            className="mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent mb-3">Full Feature Set</p>
+            <h2 className="text-4xl md:text-5xl font-black">Everything You Need</h2>
+            <div className="mt-3 h-1 w-16 rounded-full bg-gradient-to-r from-accent to-rose-600" />
+          </motion.div>
+
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+            }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+          >
+            {features.map((feature, idx) => (
+              <motion.div
+                key={idx}
+                variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
+                className="group flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] hover:border-accent/30 hover:bg-accent/5 transition-all duration-300 p-4"
+              >
+                <div className="flex-shrink-0 mt-0.5 w-6 h-6 rounded-md bg-gradient-to-br from-accent/30 to-rose-700/20 flex items-center justify-center">
+                  <span className="text-accent text-xs">✦</span>
                 </div>
-                <div className="rounded-lg border border-accent/20 bg-bg/40 px-3 py-3">
-                  <p className="text-2xl font-bold text-accent">99.9%</p>
-                  <p className="text-xs text-subtle">Platform Uptime</p>
-                </div>
-                <div className="rounded-lg border border-accent/20 bg-bg/40 px-3 py-3">
-                  <p className="text-2xl font-bold text-accent">&lt;5m</p>
-                  <p className="text-xs text-subtle">Avg. Setup Time</p>
-                </div>
-              </div>
+                <p className="text-sm text-subtle group-hover:text-text transition-colors leading-relaxed">{feature}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ── HOW IT WORKS ── */}
+        <section className="mx-auto max-w-5xl px-5 md:px-10 py-20">
+          <motion.div
+            className="mb-14 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent mb-3">Setup in Minutes</p>
+            <h2 className="text-4xl md:text-5xl font-black">How It Works</h2>
+            <div className="mt-3 h-1 w-16 rounded-full bg-gradient-to-r from-accent to-rose-600 mx-auto" />
+          </motion.div>
+
+          <div className="relative">
+            {/* Vertical connector line */}
+            <div
+              className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-accent/50 via-accent/20 to-transparent"
+              style={{ transform: "translateX(-50%)" }}
+            />
+
+            <div className="space-y-8">
+              {workflow.map((step, idx) => {
+                const isEven = idx % 2 === 0;
+                return (
+                  <motion.div
+                    key={step.id}
+                    className={`relative flex gap-8 ${isEven ? "md:flex-row" : "md:flex-row-reverse"} flex-row`}
+                    initial={{ opacity: 0, x: isEven ? -20 : 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  >
+                    {/* Step number bubble */}
+                    <div className="absolute left-8 md:left-1/2 top-6 -translate-x-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center font-black text-black text-sm shadow-lg shadow-accent/30"
+                      style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+                    >
+                      {step.id}
+                    </div>
+
+                    {/* Content block */}
+                    <div className={`ml-20 md:ml-0 md:w-[calc(50%-2.5rem)] ${isEven ? "md:pr-10" : "md:pl-10 md:ml-auto"}`}>
+                      <div className="rounded-2xl border border-white/5 bg-white/[0.03] hover:border-accent/30 hover:bg-accent/5 transition-all duration-300 p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-black">{step.title}</h3>
+                          <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-bold text-accent uppercase tracking-wider">
+                            {idx === 0 ? "1–2 min" : idx === 1 ? "2–3 min" : "instant"}
+                          </span>
+                        </div>
+                        <p className="text-subtle text-sm leading-relaxed">{step.text}</p>
+                      </div>
+                    </div>
+
+                    {/* Spacer for other side */}
+                    <div className="hidden md:block md:w-[calc(50%-2.5rem)]" />
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
-        </motion.section>
+        </section>
 
-        {/* Stats Section */}
-        <motion.section
-          className="max-w-6xl mx-auto py-12 grid grid-cols-3 gap-4 md:gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-        >
-          {[
-            { value: "10k+", label: "Active Streamers" },
-            { value: "50M+", label: "Monthly Viewers" },
-            { value: "99.9%", label: "Uptime" }
-          ].map((stat, idx) => (
+        {/* ── PRICING ── */}
+        <section id="pricing" className="mx-auto max-w-6xl px-5 md:px-10 py-20">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent mb-3">Transparent Pricing</p>
+            <h2 className="text-4xl md:text-5xl font-black">Pick Your Plan</h2>
+            <div className="mt-3 h-1 w-16 rounded-full bg-gradient-to-r from-accent to-rose-600 mx-auto" />
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {/* Starter */}
             <motion.div
-              key={idx}
-              className="p-6 rounded-xl border border-accent/20 bg-accent/5 backdrop-blur-sm hover:border-accent/40 transition-all duration-300"
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 flex flex-col"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.1, duration: 0.4 }}
+              transition={{ delay: 0 }}
             >
-              <div className="text-3xl font-bold text-accent mb-2">{stat.value}</div>
-              <div className="text-sm text-subtle">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.section>
-
-        {/* Product Preview Tabs */}
-        <motion.section
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-120px" }}
-        >
-          <div className="mb-10">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Product Preview</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-[1fr_1.4fr]">
-            <div className="space-y-3">
-              {previewTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActivePreview(tab.id)}
-                  className={`w-full rounded-xl border p-4 text-left transition-all duration-300 ${
-                    activePreview === tab.id
-                      ? "border-accent/50 bg-gradient-to-r from-accent/15 to-rose-700/15"
-                      : "border-accent/20 bg-accent/5 hover:border-accent/35"
-                  }`}
-                >
-                  <p className="text-lg font-semibold">{tab.title}</p>
-                  <p className="mt-1 text-sm text-subtle">{tab.description}</p>
-                </button>
-              ))}
-            </div>
-
-            <div className="rounded-2xl border border-accent/25 bg-bg-deep/80 p-6 md:p-8">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.18em] text-accent font-semibold">Live UI Snapshot</p>
-                <p className="text-xs text-subtle">Mode: {activePreview.replace("-", " ")}</p>
-              </div>
-              <div className="rounded-xl border border-accent/25 bg-gradient-to-br from-accent/10 to-rose-700/10 p-5">
-                <div className="mb-4 flex gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-lg border border-accent/20 bg-bg/50 p-3">
-                    <p className="text-xs text-subtle mb-1">Panel</p>
-                    <p className="text-sm font-semibold">{activePreview === "overlays" ? "Overlay Actions" : activePreview === "viewer-pages" ? "Page Components" : "Permission Matrix"}</p>
-                  </div>
-                  <div className="rounded-lg border border-accent/20 bg-bg/50 p-3">
-                    <p className="text-xs text-subtle mb-1">Status</p>
-                    <p className="text-sm font-semibold">Connected and Ready</p>
-                  </div>
-                  <div className="rounded-lg border border-accent/20 bg-bg/50 p-3 md:col-span-2">
-                    <p className="text-xs text-subtle mb-1">Preview</p>
-                    <div className="h-24 rounded-md bg-gradient-to-r from-accent/25 via-rose-700/25 to-accent/10" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Interactive Demo */}
-        <motion.section
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-120px" }}
-        >
-          <div className="mb-10">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Interactive Demo</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
-          <div className="rounded-2xl border border-accent/25 bg-gradient-to-br from-accent/10 to-rose-700/10 p-6 md:p-8">
-            <div className="grid gap-6 md:grid-cols-[1fr_1.4fr]">
-              <div className="space-y-3">
-                {["Show Bonus Hunt Overlay", "Trigger Offer Banner", "Switch Viewer Panel", "Log Moderator Action"].map((action) => (
-                  <button
-                    key={action}
-                    type="button"
-                    className="w-full rounded-lg border border-accent/25 bg-bg/60 px-4 py-3 text-left text-sm font-medium hover:border-accent/50 transition-colors duration-300"
-                  >
-                    {action}
-                  </button>
-                ))}
-              </div>
-              <div className="rounded-xl border border-accent/25 bg-bg/65 p-5">
-                <p className="text-xs uppercase tracking-[0.16em] text-accent font-semibold mb-4">Simulated Live Output</p>
-                <div className="h-40 rounded-lg border border-accent/20 bg-gradient-to-br from-accent/20 to-rose-700/20 mb-4" />
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-md border border-accent/20 bg-bg/50 p-3 text-center">
-                    <p className="text-lg font-bold text-accent">+42%</p>
-                    <p className="text-[11px] text-subtle">Engagement</p>
-                  </div>
-                  <div className="rounded-md border border-accent/20 bg-bg/50 p-3 text-center">
-                    <p className="text-lg font-bold text-accent">1.1s</p>
-                    <p className="text-[11px] text-subtle">Response</p>
-                  </div>
-                  <div className="rounded-md border border-accent/20 bg-bg/50 p-3 text-center">
-                    <p className="text-lg font-bold text-accent">Live</p>
-                    <p className="text-[11px] text-subtle">Sync</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Features Section */}
-        <motion.section
-          id="features"
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Powerful Features</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
-          <motion.div
-            className="grid md:grid-cols-3 gap-6"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: { staggerChildren: 0.1 }
-              }
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {features.slice(0, 6).map((feature, idx) => (
-              <motion.div
-                key={idx}
-                className="p-6 rounded-xl border border-accent/20 bg-accent/5 backdrop-blur-sm hover:border-accent/40 hover:bg-accent/10 transition-all duration-300"
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-              >
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center mb-4">
-                  <span className="text-sm font-bold text-white">{idx + 1}</span>
-                </div>
-                <p className="text-sm leading-relaxed">{feature}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.section>
-
-        {/* Use Cases */}
-        <motion.section
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Casino Use Cases</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                title: "Slots Streams",
-                text: "Rotate promos automatically, highlight current offers and keep chat-facing visuals updated in real time."
-              },
-              {
-                title: "Roulette Nights",
-                text: "Drive anticipation with dynamic overlays for betting phases, payouts and session highlights."
-              },
-              {
-                title: "Crash Sessions",
-                text: "Surface fast-changing data in clean widgets so viewers follow decisions without clutter."
-              }
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-accent/20 bg-accent/5 p-6 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                <p className="text-sm text-subtle leading-relaxed">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* How It Works */}
-        <motion.section
-          id="benefits"
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">How It Works</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
-          <motion.div
-            className="space-y-6"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: { staggerChildren: 0.15 }
-              }
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {workflow.map((step, idx) => (
-              <motion.div
-                key={step.id}
-                className="relative flex gap-6 items-start p-6 rounded-xl border border-accent/20 hover:border-accent/40 bg-accent/5 hover:bg-accent/10 backdrop-blur-sm transition-all duration-300"
-                variants={{
-                  hidden: { opacity: 0, x: -20 },
-                  visible: { opacity: 1, x: 0 }
-                }}
-              >
-                {idx < workflow.length - 1 && (
-                  <div className="absolute left-[29px] top-[62px] bottom-[-24px] w-px bg-accent/30" />
+              <p className="text-xs font-bold uppercase tracking-widest text-subtle mb-1">Starter</p>
+              <p className="text-5xl font-black mb-1">Free</p>
+              <p className="text-sm text-subtle mb-6">Get started, no card required</p>
+              <ul className="space-y-3 text-sm text-subtle mb-8 flex-1">
+                {["1 channel", "Core overlays & viewer tools", "Twitch bot with all commands", "Basic moderation access"].map(
+                  (item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <span className="text-accent">✓</span> {item}
+                    </li>
+                  )
                 )}
-                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center font-bold text-black text-lg">
-                  {step.id}
-                </div>
-                <div>
-                  <div className="mb-2 flex items-center gap-3">
-                    <h3 className="text-lg font-semibold">{step.title}</h3>
-                    <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] text-accent">
-                      {idx === 0 ? "1-2 min" : idx === 1 ? "2-3 min" : "under 1 min"}
-                    </span>
-                  </div>
-                  <p className="text-subtle">{step.text}</p>
-                </div>
-              </motion.div>
-            ))}
+              </ul>
+              <Link
+                href={isLoggedIn ? "/overlays" : "/auth"}
+                className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
+              >
+                Start Free
+              </Link>
+            </motion.div>
+
+            {/* Pro — Popular */}
+            <motion.div
+              className="rounded-2xl border border-accent/40 p-8 relative overflow-hidden flex flex-col"
+              style={{ background: "linear-gradient(145deg, rgba(245,196,81,0.08) 0%, rgba(178,34,52,0.08) 100%)" }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="absolute top-4 right-4 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black"
+                style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+              >
+                Popular
+              </div>
+              <div className="absolute inset-0 rounded-2xl ring-1 ring-accent/40 pointer-events-none" />
+              <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+              <p className="text-xs font-bold uppercase tracking-widest text-accent mb-1">Pro</p>
+              <p className="text-5xl font-black mb-1">
+                150€<span className="text-xl text-subtle font-normal">/mo</span>
+              </p>
+              <p className="text-sm text-subtle mb-6">For growing teams</p>
+              <ul className="space-y-3 text-sm text-subtle mb-8 flex-1">
+                {["Up to 3 channels", "Limited overlays & front pages", "Priority bot restart", "Standard support"].map(
+                  (item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <span className="text-accent">✓</span> {item}
+                    </li>
+                  )
+                )}
+              </ul>
+              <Link
+                href={isLoggedIn ? "/overlays" : "/auth"}
+                className="block w-full rounded-xl py-3 text-center font-black text-black transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+              >
+                Get Pro
+              </Link>
+            </motion.div>
+
+            {/* Enterprise */}
+            <motion.div
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 flex flex-col"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <p className="text-xs font-bold uppercase tracking-widest text-subtle mb-1">Enterprise</p>
+              <p className="text-5xl font-black mb-1">
+                300€<span className="text-xl text-subtle font-normal">/mo</span>
+              </p>
+              <p className="text-sm text-subtle mb-6">Unlimited, no restrictions</p>
+              <ul className="space-y-3 text-sm text-subtle mb-8 flex-1">
+                {[
+                  "Unlimited channels",
+                  "All 14 widget types",
+                  "Unlimited overlays & pages",
+                  "Prioritized enterprise support",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <span className="text-accent">✓</span> {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={isLoggedIn ? "/overlays" : "/auth"}
+                className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
+              >
+                Contact Us
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section className="mx-auto max-w-3xl px-5 md:px-10 py-20">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            <h2 className="text-4xl md:text-5xl font-black">FAQ</h2>
+            <div className="mt-3 h-1 w-16 rounded-full bg-gradient-to-r from-accent to-rose-600 mx-auto" />
           </motion.div>
-        </motion.section>
 
-        {/* Pricing Preview */}
-        <motion.section
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Pricing Preview</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-2xl border border-accent/20 bg-accent/5 p-8">
-              <p className="text-sm uppercase tracking-[0.16em] text-subtle mb-2">Starter</p>
-              <p className="text-4xl font-bold mb-4">Free</p>
-              <ul className="space-y-3 text-sm text-subtle">
-                <li>1 channel setup</li>
-                <li>Core overlay + viewer tools</li>
-                <li>Basic moderation access</li>
-              </ul>
-            </div>
-            <div className="rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/10 to-rose-700/10 p-8">
-              <p className="text-sm uppercase tracking-[0.16em] text-accent mb-2">Pro</p>
-              <p className="text-4xl font-bold mb-4">150€<span className="text-lg text-subtle">/mo</span></p>
-              <ul className="space-y-3 text-sm text-subtle">
-                <li>Slimmed-down version for small teams</li>
-                <li>Limited overlays and front pages</li>
-                <li>Standard Support</li>
-              </ul>
-            </div>
-            <div className="rounded-2xl border border-accent/40 bg-gradient-to-br from-rose-700/15 to-accent/15 p-8">
-              <p className="text-sm uppercase tracking-[0.16em] text-accent mb-2">Enterprise</p>
-              <p className="text-4xl font-bold mb-4">300€<span className="text-lg text-subtle">/mo</span></p>
-              <ul className="space-y-3 text-sm text-subtle">
-                <li>All features unlimited</li>
-                <li>Unlimited overlays, front pages, and roles</li>
-                <li>Prioritized enterprise support</li>
-              </ul>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* FAQ */}
-        <motion.section
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">FAQ</h2>
-            <div className="h-1 w-16 bg-gradient-to-r from-accent to-rose-600 rounded-full" />
-          </div>
           <div className="space-y-3">
-            {faqItems.map((item, idx) => (
-              <div key={item.q} className="rounded-xl border border-accent/20 bg-accent/5">
+            {FAQ_ITEMS.map((item, idx) => (
+              <motion.div
+                key={item.q}
+                className="rounded-xl border border-white/5 bg-white/[0.03] overflow-hidden"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+              >
                 <button
                   type="button"
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="flex w-full items-center justify-between px-5 py-4 text-left"
+                  className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-white/[0.03] transition-colors"
                 >
-                  <span className="font-semibold">{item.q}</span>
-                  <span className="text-accent text-xl leading-none">{openFaq === idx ? "-" : "+"}</span>
+                  <span className="font-bold text-sm md:text-base">{item.q}</span>
+                  <motion.span
+                    className="flex-shrink-0 ml-4 text-accent text-xl leading-none"
+                    animate={{ rotate: openFaq === idx ? 45 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    +
+                  </motion.span>
                 </button>
-                {openFaq === idx && (
-                  <div className="px-5 pb-4 text-sm text-subtle">{item.a}</div>
-                )}
-              </div>
+                <AnimatePresence>
+                  {openFaq === idx && (
+                    <motion.div
+                      key="answer"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 text-sm text-subtle leading-relaxed border-t border-white/5 pt-3">
+                        {item.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             ))}
           </div>
-        </motion.section>
+        </section>
 
-        {/* Security */}
-        <motion.section
-          className="max-w-6xl mx-auto py-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="rounded-2xl border border-accent/25 bg-gradient-to-br from-accent/10 to-rose-700/10 p-6 md:p-10">
-            <p className="text-xs uppercase tracking-[0.18em] text-accent font-semibold mb-3">Security and Control</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Built for secure stream operations</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-accent/20 bg-bg/45 p-4">
-                <p className="font-semibold mb-1">Token-based Access</p>
-                <p className="text-sm text-subtle">Rotate and revoke overlay/viewer tokens instantly from the dashboard.</p>
-              </div>
-              <div className="rounded-lg border border-accent/20 bg-bg/45 p-4">
-                <p className="font-semibold mb-1">Role Permissions</p>
-                <p className="text-sm text-subtle">Fine-grained moderator permissions prevent accidental high-impact changes.</p>
-              </div>
-              <div className="rounded-lg border border-accent/20 bg-bg/45 p-4">
-                <p className="font-semibold mb-1">Action Logging</p>
-                <p className="text-sm text-subtle">Track key actions with exportable logs for audit and incident review.</p>
-              </div>
-              <div className="rounded-lg border border-accent/20 bg-bg/45 p-4">
-                <p className="font-semibold mb-1">Operational Stability</p>
-                <p className="text-sm text-subtle">Designed for always-on broadcasts with minimal dashboard friction.</p>
-              </div>
+        {/* ── CTA ── */}
+        <section className="mx-auto max-w-4xl px-5 md:px-10 pb-20">
+          <motion.div
+            className="relative rounded-3xl overflow-hidden p-10 md:p-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/15 via-rose-700/10 to-accent/5" />
+            <div className="absolute inset-0 border border-accent/25 rounded-3xl pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+            <div className="relative z-10">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent mb-4">Ready to Stream?</p>
+              <h2 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
+                Level Up Your
+                <br />
+                <span
+                  className="text-transparent bg-clip-text"
+                  style={{ backgroundImage: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+                >
+                  Casino Streams
+                </span>
+              </h2>
+              <p className="text-subtle mb-8 max-w-xl mx-auto">
+                Join thousands of casino streamers who trust Elements for their live operations.
+              </p>
+              <Link
+                href={isLoggedIn ? "/overlays" : "/auth"}
+                className="inline-flex items-center gap-2 px-10 py-4 rounded-xl font-black text-black text-base shadow-xl hover:shadow-accent/50 hover:scale-105 transition-all duration-300"
+                style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+              >
+                {isLoggedIn ? "Open Dashboard" : "Create Account — Free"}
+                <span>→</span>
+              </Link>
             </div>
-          </div>
-        </motion.section>
-
-        {/* CTA Section */}
-        <motion.section
-          className="max-w-4xl mx-auto py-20 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="p-12 rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/10 to-rose-700/10 backdrop-blur-xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to level up your casino streams?</h2>
-            <p className="text-lg text-subtle mb-8 max-w-2xl mx-auto">
-              Join thousands of streamers who are already managing their casino streams with Elements.
-            </p>
-            <Link
-              href={isLoggedIn ? "/overlays" : "/auth"}
-              className="inline-block px-8 py-4 bg-gradient-to-r from-accent to-rose-700 rounded-lg font-bold text-black hover:shadow-xl hover:shadow-accent/40 transition-all duration-300"
-            >
-              {isLoggedIn ? "Go to Dashboard" : "Create Account Free"}
-            </Link>
-          </div>
-        </motion.section>
+          </motion.div>
+        </section>
       </main>
 
-      <footer className="border-t border-accent/20 bg-bg/50 backdrop-blur-sm mt-20 relative z-10">
-        <div className="max-w-6xl mx-auto px-6 md:px-10 py-8">
-          <p className="text-xs text-subtle text-center">
-            © {new Date().getFullYear()} Elements. All rights reserved.
-          </p>
+      {/* ── FOOTER ── */}
+      <footer className="border-t border-white/5 bg-black/20 backdrop-blur-sm relative z-10">
+        <div className="mx-auto max-w-7xl px-5 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center">
+              <span className="text-black font-black text-[10px]">E</span>
+            </div>
+            <span className="text-sm font-black tracking-wider text-subtle">ELEMENTS</span>
+          </div>
+          <p className="text-xs text-subtle/60">© {new Date().getFullYear()} Elements. All rights reserved.</p>
+          <div className="flex gap-6">
+            <a href="#widgets" className="text-xs text-subtle/60 hover:text-subtle transition-colors">
+              Widgets
+            </a>
+            <a href="#features" className="text-xs text-subtle/60 hover:text-subtle transition-colors">
+              Features
+            </a>
+            <a href="#pricing" className="text-xs text-subtle/60 hover:text-subtle transition-colors">
+              Pricing
+            </a>
+          </div>
         </div>
       </footer>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-accent/25 bg-bg/95 p-3 backdrop-blur-md md:hidden">
+      {/* ── MOBILE STICKY CTA ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-bg/90 backdrop-blur-md p-3 md:hidden">
         <Link
           href={isLoggedIn ? "/overlays" : "/auth"}
-          className="block w-full rounded-lg bg-gradient-to-r from-accent to-rose-700 px-4 py-3 text-center font-bold text-black"
+          className="block w-full rounded-xl py-3 text-center font-black text-black"
+          style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
         >
           {isLoggedIn ? "Open Dashboard" : "Start Free"}
         </Link>

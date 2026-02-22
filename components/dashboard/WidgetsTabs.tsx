@@ -21,7 +21,8 @@ type WidgetRow = {
 const tabs = [
   { id: "widgets", label: "Widgets" },
   { id: "layout", label: "Layout" },
-  { id: "live", label: "Live Controls" }
+  { id: "live", label: "Live Controls" },
+  { id: "preview", label: "Preview" }
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -70,6 +71,23 @@ export function WidgetsTabs({ overlayId, widgets }: { overlayId: string; widgets
 
       {activeTab === "layout" ? <LayoutEditor overlayId={overlayId} initial={widgets} /> : null}
       {activeTab === "live" ? <WidgetControlDeck overlayId={overlayId} /> : null}
+      {activeTab === "preview" ? (
+        <div className="space-y-2">
+          <iframe
+            src={`/overlay-preview/${overlayId}`}
+            className="w-full rounded-lg border border-panelMuted bg-bg-deep"
+            style={{ height: "500px" }}
+          />
+          <a
+            href={`/overlay-preview/${overlayId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-block text-sm text-accent hover:underline"
+          >
+            Open fullscreen →
+          </a>
+        </div>
+      ) : null}
     </div>
   );
 }

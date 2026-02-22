@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
+import { RealtimeRefresher } from "@/components/ui/RealtimeRefresher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -84,6 +85,7 @@ export default async function ViewerBonushuntPage({ params }: { params: Promise<
 
   return (
     <main className="min-h-screen bg-bg-deep px-3 py-4 md:px-6 md:py-6">
+      <RealtimeRefresher overlayId={page.overlay_id} />
       <div className="mx-auto max-w-4xl rounded-3xl border border-accent/25 bg-panel/85 p-4 shadow-xl md:p-6">
         <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-bg-deep/90 px-4 py-3">
           <div>
