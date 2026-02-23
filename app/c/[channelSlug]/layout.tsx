@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getWebsiteConfig } from "@/lib/website-config";
-import { PublicHelpWidget } from "@/components/website/PublicHelpWidget";
 import { ChannelNav } from "@/components/website/ChannelNav";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +35,6 @@ export default async function ChannelLayout({
       >
         Powered by <span style={{ color: "#f5c451" }}>Pulseframelabs</span>
       </footer>
-      <PublicHelpWidget channelSlug={channelSlug} />
     </div>
   );
 }

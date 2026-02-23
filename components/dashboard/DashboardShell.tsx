@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { NAV_ITEMS } from "@/lib/constants";
 import { useState } from "react";
 import { BrandIcon } from "@/components/BrandIcon";
+import { DashboardLiveChatWidget } from "@/components/dashboard/DashboardLiveChatWidget";
 
 // ── Inline SVG icons ──────────────────────────────────────────────────────────
 
@@ -207,6 +208,7 @@ export function DashboardShell({
           {inspector}
         </aside>
       )}
+      <DashboardLiveChatWidget />
     </div>
   );
 }

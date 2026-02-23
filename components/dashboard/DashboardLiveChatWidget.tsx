@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type ChatMessage = {
   id: string;
@@ -9,10 +9,9 @@ type ChatMessage = {
   created_at: string;
 };
 
-const SESSION_KEY_PREFIX = "livechat:";
+const SESSION_KEY = "dashboard-livechat-session";
 
-export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
-  const sessionStorageKey = useMemo(() => `${SESSION_KEY_PREFIX}${channelSlug}`, [channelSlug]);
+export function DashboardLiveChatWidget() {
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [sessionToken, setSessionToken] = useState("");
@@ -22,7 +21,7 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(sessionStorageKey);
+    const raw = window.localStorage.getItem(SESSION_KEY);
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw) as { sessionId?: string; sessionToken?: string };
@@ -33,7 +32,7 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
     } catch {
       // ignore malformed local storage payload
     }
-  }, [sessionStorageKey]);
+  }, []);
 
   useEffect(() => {
     if (!sessionId || !sessionToken) return;
@@ -45,7 +44,7 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
       setMessages(data.messages ?? []);
     };
     void run();
-    const timer = window.setInterval(() => void run(), 3000);
+    const timer = window.setInterval(() => void run(), 2500);
     return () => window.clearInterval(timer);
   }, [sessionId, sessionToken]);
 
@@ -54,19 +53,21 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/livechat/session", {
+      const res = await fetch("/api/livechat/dashboard/session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channelSlug })
+        headers: { "Content-Type": "application/json" }
       });
-      if (!res.ok) throw new Error("session_failed");
-      const data = (await res.json()) as { sessionId: string; sessionToken: string };
+      const data = (await res.json()) as { sessionId?: string; sessionToken?: string; error?: string };
+      if (!res.ok || !data.sessionId || !data.sessionToken) {
+        throw new Error(data.error || "session_failed");
+      }
       setSessionId(data.sessionId);
       setSessionToken(data.sessionToken);
-      window.localStorage.setItem(sessionStorageKey, JSON.stringify(data));
+      window.localStorage.setItem(SESSION_KEY, JSON.stringify({ sessionId: data.sessionId, sessionToken: data.sessionToken }));
       return { sessionId: data.sessionId, sessionToken: data.sessionToken };
-    } catch {
-      setError("Support chat is currently unavailable.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "session_failed";
+      setError(message);
       return null;
     } finally {
       setLoading(false);
@@ -87,13 +88,12 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: session.sessionId, sessionToken: session.sessionToken, message })
       });
-      if (!res.ok) throw new Error("send_failed");
-      const data = (await res.json()) as { message?: ChatMessage };
-      if (data.message) {
-        setMessages((prev) => [...prev, data.message as ChatMessage]);
-      }
-    } catch {
-      setError("Message could not be sent.");
+      const data = (await res.json()) as { message?: ChatMessage; error?: string };
+      if (!res.ok) throw new Error(data.error || "send_failed");
+      if (data.message) setMessages((prev) => [...prev, data.message as ChatMessage]);
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : "send_failed";
+      setError(messageText);
       setInput(message);
     } finally {
       setLoading(false);
@@ -102,37 +102,26 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
 
   async function onOpenClick() {
     setOpen((v) => !v);
-    if (!open) {
-      await ensureSession();
-    }
+    if (!open) await ensureSession();
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-40">
+    <div className="fixed bottom-4 left-4 z-50">
       {open ? (
         <div className="mb-2 w-[340px] max-w-[calc(100vw-2rem)] rounded-xl border border-[#2a3142] bg-[#0d1320] p-3 text-xs text-slate-200 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <p className="font-semibold text-white">Live Support</p>
-            <span className="text-[10px] text-slate-400">Discord connected</span>
+            <span className="text-[10px] text-slate-400">Discord bridge</span>
           </div>
-
           <div className="mb-2 h-56 overflow-y-auto rounded-md border border-[#1e2535] bg-[#0a0f18] p-2">
             {messages.length === 0 ? (
-              <p className="text-slate-400">Write a message. We answer in this window.</p>
+              <p className="text-slate-400">Schreib uns direkt hier. Antworten kommen live rein.</p>
             ) : (
               <div className="space-y-1.5">
                 {messages.map((msg) => (
                   <div key={msg.id} className="text-[11px]">
-                    <span
-                      className={
-                        msg.sender === "viewer"
-                          ? "text-cyan-300"
-                          : msg.sender === "agent"
-                            ? "text-emerald-300"
-                            : "text-slate-300"
-                      }
-                    >
-                      {msg.sender === "viewer" ? "You" : msg.sender === "agent" ? "Support" : "System"}:
+                    <span className={msg.sender === "viewer" ? "text-cyan-300" : msg.sender === "agent" ? "text-emerald-300" : "text-slate-300"}>
+                      {msg.sender === "viewer" ? "Du" : msg.sender === "agent" ? "Support" : "System"}:
                     </span>{" "}
                     <span className="text-slate-100">{msg.body}</span>
                   </div>
@@ -140,7 +129,6 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
               </div>
             )}
           </div>
-
           <div className="flex gap-2">
             <input
               value={input}
@@ -149,7 +137,7 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
                 if (e.key === "Enter") void sendMessage();
               }}
               maxLength={1000}
-              placeholder="Type your message..."
+              placeholder="Nachricht eingeben..."
               className="h-9 flex-1 rounded-md border border-[#2a3142] bg-[#111827] px-2 text-xs text-white outline-none focus:border-cyan-400"
             />
             <button
@@ -158,10 +146,9 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
               disabled={loading || !input.trim()}
               className="h-9 rounded-md bg-cyan-600 px-3 text-xs font-semibold text-white disabled:opacity-50"
             >
-              Send
+              Senden
             </button>
           </div>
-
           {error ? <p className="mt-2 text-[11px] text-rose-300">{error}</p> : null}
         </div>
       ) : null}
@@ -178,3 +165,4 @@ export function PublicHelpWidget({ channelSlug }: { channelSlug: string }) {
     </div>
   );
 }
+

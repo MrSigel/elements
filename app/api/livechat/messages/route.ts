@@ -26,7 +26,11 @@ export async function GET(req: NextRequest) {
       const discordMessages = await listDiscordThreadMessages(session.discord_thread_id, session.last_discord_message_id);
       const nonBot = discordMessages
         .filter((m) => m.content?.trim() && !m.author?.bot)
-        .sort((a, b) => a.id.localeCompare(b.id));
+        .sort((a, b) => {
+          const av = BigInt(a.id);
+          const bv = BigInt(b.id);
+          return av < bv ? -1 : av > bv ? 1 : 0;
+        });
       if (nonBot.length > 0) {
         const inserts = nonBot.map((m) => ({
           session_id: session.id,
@@ -86,12 +90,15 @@ export async function POST(req: NextRequest) {
     .single();
   if (error || !inserted) return NextResponse.json({ error: "insert_failed" }, { status: 500 });
 
-  if (session.discord_thread_id) {
-    try {
-      await sendMessageToDiscordThread(session.discord_thread_id, `Viewer: ${message}`);
-    } catch {
-      // Ignore Discord send errors so the website chat remains available.
-    }
+  if (!session.discord_thread_id) {
+    return NextResponse.json({ error: "discord_thread_missing" }, { status: 500 });
+  }
+
+  try {
+    await sendMessageToDiscordThread(session.discord_thread_id, `Viewer: ${message}`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "discord_send_failed";
+    return NextResponse.json({ error: msg }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true, message: inserted });

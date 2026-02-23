@@ -18,7 +18,7 @@ function getDiscordConfig() {
   };
 }
 
-function hasDiscordLivechatConfig() {
+export function hasDiscordLivechatConfig() {
   const cfg = getDiscordConfig();
   return Boolean(cfg.token && cfg.channelId);
 }
@@ -89,4 +89,3 @@ export async function listDiscordThreadMessages(threadId: string, afterMessageId
   const qs = afterMessageId ? `?after=${encodeURIComponent(afterMessageId)}&limit=100` : "?limit=100";
   return discordRequest<DiscordThreadMessage[]>(`/channels/${threadId}/messages${qs}`);
 }
-
