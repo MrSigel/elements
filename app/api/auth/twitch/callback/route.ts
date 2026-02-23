@@ -46,6 +46,10 @@ export async function GET(req: NextRequest) {
   const expected = cookieStore?.get?.("tw_state")?.value;
   if (!code || !state || state !== expected) return NextResponse.json({ error: "invalid_oauth_state" }, { status: 400 });
 
+  // If user is already authenticated (e.g. email/password user connecting Twitch from onboarding),
+  // redirect to the dashboard after connecting instead of back to onboarding.
+  const alreadyLoggedIn = !!cookieStore?.get?.("sb-access-token")?.value;
+
   const tokenRes = await fetch("https://id.twitch.tv/oauth2/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -122,7 +126,8 @@ export async function GET(req: NextRequest) {
       path: "/"
     };
 
-    const res = NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/onboarding`);
+    const destination = alreadyLoggedIn ? "/overlays" : "/onboarding";
+    const res = NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}${destination}`);
     if (otpData?.session) {
       res.cookies.set("sb-access-token", otpData.session.access_token, {
         ...COOKIE_OPTS,
