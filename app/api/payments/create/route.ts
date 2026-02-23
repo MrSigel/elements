@@ -28,10 +28,12 @@ export async function POST(req: NextRequest) {
   const coin = body?.coin;
 
   if (!plan || !PLAN_PRICES[plan]) return NextResponse.json({ error: "invalid_plan" }, { status: 400 });
-  if (!coin || !WALLET_MAP[coin]) return NextResponse.json({ error: "invalid_coin" }, { status: 400 });
+
+  const VALID_COINS = ["btc", "eth", "trc20/usdt", "ltc"];
+  if (!coin || !VALID_COINS.includes(coin)) return NextResponse.json({ error: "invalid_coin" }, { status: 400 });
 
   const wallet = WALLET_MAP[coin];
-  if (!wallet) return NextResponse.json({ error: "wallet_not_configured" }, { status: 503 });
+  if (!wallet) return NextResponse.json({ error: "wallet_not_configured", coin }, { status: 503 });
 
   const amountEur = PLAN_PRICES[plan];
   const admin = createServiceClient();

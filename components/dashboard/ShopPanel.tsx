@@ -16,7 +16,7 @@ export function ShopPanel({ currentPlan }: { currentPlan: Plan }) {
           <p className="text-4xl font-black mb-1">Free</p>
           <p className="text-sm text-subtle mb-5">Get started, no card required</p>
           <ul className="space-y-2.5 text-sm text-subtle mb-6 flex-1">
-            {["1 channel", "Core overlays & viewer tools", "Twitch bot commands", "Basic moderation access"].map((item) => (
+            {["1 channel", "Hotwords widget", "Slot Requests widget", "Twitch chat bot"].map((item) => (
               <li key={item} className="flex items-center gap-2">
                 <span className="text-accent">+</span> {item}
               </li>
@@ -42,9 +42,9 @@ export function ShopPanel({ currentPlan }: { currentPlan: Plan }) {
           <p className="text-4xl font-black mb-1">
             150 EUR<span className="text-lg text-subtle font-normal">/mo</span>
           </p>
-          <p className="text-sm text-subtle mb-5">For growing teams</p>
+          <p className="text-sm text-subtle mb-5">For serious streamers</p>
           <ul className="space-y-2.5 text-sm text-subtle mb-6 flex-1">
-            {["Up to 3 channels", "Limited overlays & front pages", "Priority bot restart", "Standard support"].map((item) => (
+            {["1 channel", "All 13 widget types", "Unlimited overlays", "Priority support"].map((item) => (
               <li key={item} className="flex items-center gap-2">
                 <span className="text-accent">+</span> {item}
               </li>
@@ -66,9 +66,9 @@ export function ShopPanel({ currentPlan }: { currentPlan: Plan }) {
           <p className="text-4xl font-black mb-1">
             300 EUR<span className="text-lg text-subtle font-normal">/mo</span>
           </p>
-          <p className="text-sm text-subtle mb-5">Unlimited, no restrictions</p>
+          <p className="text-sm text-subtle mb-5">Full version — no limits</p>
           <ul className="space-y-2.5 text-sm text-subtle mb-6 flex-1">
-            {["Unlimited channels", "All 14 widget types", "Unlimited overlays & pages", "Prioritized enterprise support"].map((item) => (
+            {["1 channel", "All 13 widget types", "Public landing page", "Frontpages (viewer URLs)", "Priority enterprise support"].map((item) => (
               <li key={item} className="flex items-center gap-2">
                 <span className="text-accent">+</span> {item}
               </li>

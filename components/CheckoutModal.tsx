@@ -104,6 +104,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
   async function startPayment() {
     setLoading(true);
     setError(null);
+    setQrError(false);
     try {
       const res = await fetch("/api/payments/create", {
         method: "POST",
@@ -112,7 +113,12 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Failed to create payment");
+        const errCode = (data as { error?: string }).error ?? "";
+        if (errCode === "wallet_not_configured") {
+          setError("This payment method is not yet configured. Please try a different coin.");
+        } else {
+          setError(errCode || "Failed to create payment session");
+        }
         return;
       }
       const coinAmount = toFiniteNumber((data as { coinAmount?: unknown }).coinAmount);
@@ -139,8 +145,10 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
     }
   }
 
+  const [qrError, setQrError] = useState(false);
+  const coinAmountStr = session ? Number(session.coinAmount).toFixed(8).replace(/\.?0+$/, "") : "";
   const qrUrl = session
-    ? `https://api.cryptapi.io/${session.coin}/qrcode/?address=${session.addressIn}&value=${session.coinAmount}`
+    ? `https://api.cryptapi.io/${session.coin}/qrcode/?address=${encodeURIComponent(session.addressIn)}&value=${coinAmountStr}&size=200`
     : null;
 
   return (
@@ -221,14 +229,21 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
               {/* QR Code */}
               {qrUrl && (
                 <div className="flex justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={qrUrl}
-                    alt="Payment QR code"
-                    width={160}
-                    height={160}
-                    className="rounded-lg border border-panelMuted bg-white p-1"
-                  />
+                  {qrError ? (
+                    <div className="flex items-center justify-center w-[160px] h-[160px] rounded-lg border border-panelMuted bg-panelMuted/30 text-center px-3">
+                      <p className="text-[10px] text-subtle/60">QR not available — use the address above</p>
+                    </div>
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={qrUrl}
+                      alt="Payment QR code"
+                      width={160}
+                      height={160}
+                      className="rounded-lg border border-panelMuted bg-white p-1"
+                      onError={() => setQrError(true)}
+                    />
+                  )}
                 </div>
               )}
 

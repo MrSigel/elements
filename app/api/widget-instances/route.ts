@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { widgetInstanceCreateSchema } from "@/lib/schemas/overlay";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { AuthzError, getOverlayChannelId, requireChannelPermission } from "@/lib/authz";
+import { FREE_WIDGET_KINDS } from "@/lib/plan";
 
 export async function POST(req: NextRequest) {
   const parsed = widgetInstanceCreateSchema.safeParse(await req.json());
@@ -16,6 +17,22 @@ export async function POST(req: NextRequest) {
     await requireChannelPermission({ userId: auth.user.id, channelId, permissionKey: "widget_manage", overlayId: parsed.data.overlayId });
 
     const admin = createServiceClient();
+
+    // Plan enforcement: starter plan can only use hotwords and slot_requests widgets
+    const { data: ch } = await admin
+      .from("channels")
+      .select("subscription_plan,subscription_expires_at")
+      .eq("id", channelId)
+      .maybeSingle();
+    const expired = ch?.subscription_expires_at && new Date(ch.subscription_expires_at as string) < new Date();
+    const plan = expired ? "starter" : ((ch?.subscription_plan as string) ?? "starter");
+    if (plan === "starter" && !(FREE_WIDGET_KINDS as readonly string[]).includes(parsed.data.kind)) {
+      return NextResponse.json(
+        { error: "widget_not_available_on_plan", message: "Upgrade to Pro or Enterprise to use this widget." },
+        { status: 403 }
+      );
+    }
+
     const { data, error } = await admin.from("widget_instances").insert({
       overlay_id: parsed.data.overlayId,
       kind: parsed.data.kind,
@@ -34,6 +51,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "failed" }, { status: 400 });
   }
 }
-
-
-
