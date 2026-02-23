@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { BrandIcon } from "@/components/BrandIcon";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { CheckoutModal } from "@/components/CheckoutModal";
 
@@ -161,6 +162,20 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [checkout, setCheckout] = useState<{ plan: "pro" | "enterprise" } | null>(null);
   const dashboardHref = (isLoggedIn ? "/home" : "/auth") as never;
+  const searchParams = useSearchParams();
+
+  // Auto-open checkout modal after registration redirect (e.g. /?checkout=pro)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const plan = searchParams.get("checkout");
+    if (plan === "pro" || plan === "enterprise") {
+      setCheckout({ plan });
+      // Clean up the URL without triggering a navigation
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [isLoggedIn, searchParams]);
 
   return (
     <>
@@ -517,13 +532,13 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                   Get Pro
                 </button>
               ) : (
-                <Link
-                  href="/auth"
+                <a
+                  href={`/auth?next=${encodeURIComponent("/?checkout=pro")}`}
                   className="block w-full rounded-xl py-3 text-center font-black text-black transition-all hover:opacity-90"
                   style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
                 >
                   Get Pro
-                </Link>
+                </a>
               )}
             </motion.div>
 
@@ -562,12 +577,12 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                   Get Enterprise
                 </button>
               ) : (
-                <Link
-                  href="/auth"
+                <a
+                  href={`/auth?next=${encodeURIComponent("/?checkout=enterprise")}`}
                   className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
                 >
                   Get Enterprise
-                </Link>
+                </a>
               )}
             </motion.div>
           </div>
