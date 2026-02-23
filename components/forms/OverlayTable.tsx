@@ -67,35 +67,26 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
     <div className="space-y-3">
       {overlays.map((o) => {
         const token = o.overlay_tokens?.find((t) => !t.revoked)?.public_token;
-        const obsUrl = token ? `${typeof window !== "undefined" ? window.location.origin : ""}/o/${token}` : null;
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+        const obsUrl = token ? `${appUrl}/o/${token}` : null;
 
         return (
-          <div key={o.id} className="rounded-lg border border-panelMuted bg-panel p-4">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              {/* Info */}
-              <div className="min-w-0 space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-text">{o.name}</p>
-                  {o.is_published ? (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      Live
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-panelMuted text-subtle">
-                      Draft
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-subtle">{o.width} × {o.height} px</p>
-                {obsUrl ? (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-subtle/50 font-mono">/o/{token?.slice(0, 16)}…</span>
-                    <CopyButton value={obsUrl} label="Copy OBS URL" />
-                  </div>
+          <div key={o.id} className="rounded-lg border border-panelMuted bg-panel p-4 space-y-3">
+            {/* Row 1: name, status, size, buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                <p className="font-semibold text-text">{o.name}</p>
+                {o.is_published ? (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Live
+                  </span>
                 ) : (
-                  <p className="text-xs text-subtle/40">No active token — publish to generate a URL</p>
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-panelMuted text-subtle">
+                    Draft
+                  </span>
                 )}
+                <span className="text-xs text-subtle/50">{o.width} × {o.height} px</span>
               </div>
 
               {/* Actions */}
@@ -140,6 +131,21 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
                   Delete
                 </button>
               </div>
+            </div>
+
+            {/* Row 2: OBS URL — always visible, prominent */}
+            <div className="rounded-lg border border-panelMuted/60 bg-bg/40 px-3 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-subtle/50 mb-1.5">OBS BrowserSource URL</p>
+              {obsUrl ? (
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs font-mono text-subtle truncate select-all">{obsUrl}</code>
+                  <CopyButton value={obsUrl} label="Copy" />
+                </div>
+              ) : (
+                <p className="text-xs text-subtle/40">
+                  Click <span className="text-text font-medium">Publish</span> to generate the OBS URL for this overlay.
+                </p>
+              )}
             </div>
           </div>
         );
