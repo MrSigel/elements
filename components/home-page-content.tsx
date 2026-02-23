@@ -160,6 +160,7 @@ function HeroStack() {
 export function HomePageContent({ isLoggedIn, features, workflow }: HomePageContentProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [checkout, setCheckout] = useState<{ plan: "pro" | "enterprise" } | null>(null);
+  const dashboardHref = (isLoggedIn ? "/home" : "/auth") as never;
 
   return (
     <>
@@ -189,7 +190,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
               Pricing
             </a>
             <Link
-              href={isLoggedIn ? "/overlays" : "/auth"}
+              href={dashboardHref}
               className="px-5 py-2 rounded-lg font-black text-black text-sm hover:shadow-lg hover:shadow-accent/40 hover:scale-105 transition-all"
               style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
             >
@@ -197,7 +198,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
             </Link>
           </nav>
           <Link
-            href={isLoggedIn ? "/overlays" : "/auth"}
+            href={dashboardHref}
             className="md:hidden px-4 py-1.5 rounded-lg font-bold text-black text-sm"
             style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
           >
@@ -241,7 +242,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href={isLoggedIn ? "/overlays" : "/auth"}
+                href={dashboardHref}
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-black text-black text-base shadow-xl hover:shadow-accent/40 hover:scale-105 transition-all duration-300"
                 style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
               >
@@ -469,7 +470,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                 )}
               </ul>
               <Link
-                href={isLoggedIn ? "/overlays" : "/auth"}
+                href={dashboardHref}
                 className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
               >
                 Start Free
@@ -656,7 +657,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                 Join thousands of casino streamers who trust Pulseframelabs for their live operations.
               </p>
               <Link
-                href={isLoggedIn ? "/overlays" : "/auth"}
+                href={dashboardHref}
                 className="inline-flex items-center gap-2 px-10 py-4 rounded-xl font-black text-black text-base shadow-xl hover:shadow-accent/50 hover:scale-105 transition-all duration-300"
                 style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
               >
@@ -693,7 +694,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
       {/* ── MOBILE STICKY CTA ── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-bg/90 backdrop-blur-md p-3 md:hidden">
         <Link
-          href={isLoggedIn ? "/overlays" : "/auth"}
+          href={dashboardHref}
           className="block w-full rounded-xl py-3 text-center font-black text-black"
           style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
         >

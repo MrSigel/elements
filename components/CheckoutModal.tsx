@@ -248,7 +248,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
                 </p>
               </div>
               <a
-                href="/overlays"
+                href="/home"
                 className="block w-full rounded-xl py-3 font-black text-black transition-all hover:opacity-90"
                 style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
               >

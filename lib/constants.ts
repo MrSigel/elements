@@ -1,4 +1,5 @@
 export const NAV_ITEMS = [
+  { href: "/home", label: "Home" },
   { href: "/overlays", label: "Overlays" },
   { href: "/widgets", label: "Widgets" },
   { href: "/website", label: "Website" },

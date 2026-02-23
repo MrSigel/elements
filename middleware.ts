@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/overlays", "/overlay-preview", "/widgets", "/website", "/frontpages", "/moderation", "/logs", "/settings", "/onboarding"];
+const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/settings", "/onboarding"];
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -53,11 +53,13 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/overlays/:path*",
+    "/home/:path*",
     "/overlay-preview/:path*",
     "/widgets/:path*",
     "/website/:path*",
     "/frontpages/:path*",
     "/moderation/:path*",
+    "/shop/:path*",
     "/logs/:path*",
     "/settings/:path*",
     "/onboarding/:path*"

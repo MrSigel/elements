@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
       path: "/"
     };
 
-    const destination = alreadyLoggedIn ? "/overlays?twitch=connected" : "/onboarding?twitch=connected";
+    const destination = alreadyLoggedIn ? "/home?twitch=connected" : "/onboarding?twitch=connected";
     const res = NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}${destination}`);
     if (otpData?.session) {
       res.cookies.set("sb-access-token", otpData.session.access_token, {

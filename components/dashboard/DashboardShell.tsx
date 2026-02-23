@@ -18,6 +18,13 @@ function IcoOverlays() {
     </svg>
   );
 }
+function IcoHome() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M2 7.2L8 2.2L14 7.2V13.5H10V9.8H6V13.5H2V7.2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
 function IcoWidgets() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -92,6 +99,7 @@ function IcoSignOut() {
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
+  "/home": <IcoHome />,
   "/overlays": <IcoOverlays />,
   "/widgets": <IcoWidgets />,
   "/website": <IcoWebsite />,
@@ -102,8 +110,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   "/settings": <IcoSettings />
 };
 
-const TOOL_ITEMS = NAV_ITEMS.slice(0, 6);
-const ADMIN_ITEMS = NAV_ITEMS.slice(6);
+const TOOL_ITEMS = NAV_ITEMS.slice(0, 7);
+const ADMIN_ITEMS = NAV_ITEMS.slice(7);
 
 export function DashboardShell({
   children,

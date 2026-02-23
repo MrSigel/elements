@@ -8,8 +8,8 @@ type AuthPageProps = {
 };
 
 function sanitizeNext(nextPath: string | undefined) {
-  if (!nextPath || !nextPath.startsWith("/")) return "/overlays";
-  if (nextPath.startsWith("/auth")) return "/overlays";
+  if (!nextPath || !nextPath.startsWith("/")) return "/home";
+  if (nextPath.startsWith("/auth")) return "/home";
   return nextPath;
 }
 
