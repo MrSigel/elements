@@ -66,7 +66,13 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
   return (
     <div className="space-y-3">
       {overlays.map((o) => {
-        const token = o.overlay_tokens?.find((t) => !t.revoked)?.public_token;
+        // Supabase may return a single object instead of array for one-to-one joins
+        const tokenList = Array.isArray(o.overlay_tokens)
+          ? o.overlay_tokens
+          : o.overlay_tokens
+          ? [o.overlay_tokens as { public_token: string; revoked: boolean }]
+          : [];
+        const token = tokenList.find((t) => !t.revoked)?.public_token;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
         const obsUrl = token ? `${appUrl}/o/${token}` : null;
 
