@@ -1,6 +1,7 @@
 import { WidgetsTabs } from "@/components/dashboard/WidgetsTabs";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
+import { getChannelPlan } from "@/lib/plan";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,7 +13,10 @@ export default async function WidgetsPage() {
     return <p className="text-subtle p-6">Unauthorized.</p>;
   }
 
-  const channelIds = await getAccessibleChannelIds(auth.user.id);
+  const [channelIds, plan] = await Promise.all([
+    getAccessibleChannelIds(auth.user.id),
+    getChannelPlan(auth.user.id)
+  ]);
   const admin = createServiceClient();
   const { data: overlays } = channelIds.length
     ? await admin.from("overlays").select("id").in("channel_id", channelIds).order("created_at", { ascending: false }).limit(1)
@@ -29,7 +33,7 @@ export default async function WidgetsPage() {
         <p className="text-sm text-subtle mt-1">Add widgets to your overlay and configure their behavior. Use Live Controls to trigger events manually during your stream.</p>
       </div>
       {overlayId ? (
-        <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} />
+        <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} plan={plan} />
       ) : (
         <div className="rounded-lg border border-panelMuted bg-panel p-8 text-center">
           <p className="text-sm font-semibold text-text mb-1">No overlay yet</p>

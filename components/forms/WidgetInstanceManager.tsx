@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 const kinds = ["wager_bar","deposit_withdrawal","current_playing","bonushunt","tournament","slot_battle","slot_requests","hot_words","wheel","personal_bests","quick_guessing","loyalty","points_battle"];
+const FREE_KINDS = new Set(["hot_words", "slot_requests"]);
 const DEFAULT_WIDTH = 300;
 const DEFAULT_HEIGHT = 180;
 const GAP_X = 28;
@@ -53,9 +54,10 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: string; widgets: Widget[] }) {
-  const [name, setName] = useState("New Widget");
-  const [kind, setKind] = useState(kinds[0]);
+export function WidgetInstanceManager({ overlayId, widgets, plan }: { overlayId: string; widgets: Widget[]; plan: string }) {
+  const isStarter = plan === "starter";
+  const [name, setName] = useState(isStarter ? "New Widget" : "New Widget");
+  const [kind, setKind] = useState(isStarter ? "hot_words" : kinds[0]);
   const [tokenLoading, setTokenLoading] = useState<Record<string, boolean>>({});
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -154,8 +156,27 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
       {/* Create widget row */}
       <div className="rounded-lg border border-panelMuted bg-panel p-3 space-y-2">
         <div className="flex gap-2">
-          <select className="rounded bg-panelMuted px-3 py-2" value={kind} onChange={(e) => { setKind(e.target.value); setCreateError(null); }}>
-            {kinds.map((k) => <option key={k} value={k}>{k}</option>)}
+          <select
+            className="rounded bg-panelMuted px-3 py-2"
+            value={kind}
+            onChange={(e) => { setKind(e.target.value); setCreateError(null); }}
+          >
+            {isStarter && (
+              <optgroup label="Free plan">
+                {kinds.filter((k) => FREE_KINDS.has(k)).map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </optgroup>
+            )}
+            {isStarter ? (
+              <optgroup label="Pro / Enterprise only">
+                {kinds.filter((k) => !FREE_KINDS.has(k)).map((k) => (
+                  <option key={k} value={k} disabled>{k} 🔒</option>
+                ))}
+              </optgroup>
+            ) : (
+              kinds.map((k) => <option key={k} value={k}>{k}</option>)
+            )}
           </select>
           <input className="rounded bg-panelMuted px-3 py-2 flex-1" value={name} onChange={(e) => setName(e.target.value)} />
           <button onClick={createWidget} disabled={creating} className="rounded bg-accent text-black px-3 py-2 disabled:opacity-60">
@@ -165,6 +186,11 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
         </div>
         {createError && (
           <p className="text-xs text-danger bg-danger/10 rounded px-3 py-1.5">{createError}</p>
+        )}
+        {isStarter && (
+          <p className="text-xs text-subtle/60">
+            Free plan includes <span className="text-text">Hot Words</span> and <span className="text-text">Slot Requests</span>. <a href="/shop" className="text-accent hover:underline">Upgrade to Pro</a> for all 13 widget types.
+          </p>
         )}
       </div>
 

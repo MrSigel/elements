@@ -28,7 +28,7 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]["id"];
 
-export function WidgetsTabs({ overlayId, widgets }: { overlayId: string; widgets: WidgetRow[] }) {
+export function WidgetsTabs({ overlayId, widgets, plan }: { overlayId: string; widgets: WidgetRow[]; plan?: string }) {
   const [activeTab, setActiveTab] = useState<TabId>("widgets");
   const [openHelp, setOpenHelp] = useState(false);
 
@@ -66,7 +66,7 @@ export function WidgetsTabs({ overlayId, widgets }: { overlayId: string; widgets
               </div>
             ) : null}
           </div>
-          <WidgetInstanceManager overlayId={overlayId} widgets={widgets} />
+          <WidgetInstanceManager overlayId={overlayId} widgets={widgets} plan={plan ?? "starter"} />
         </section>
       ) : null}
 
