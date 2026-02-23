@@ -15,6 +15,15 @@ export async function POST(_: Request, { params }: any) {
 
   if (!source) return NextResponse.json({ error: "overlay_not_found" }, { status: 404 });
 
+  // Verify the overlay belongs to this user's channel
+  const { data: channel } = await admin
+    .from("channels")
+    .select("id")
+    .eq("owner_id", auth.user.id)
+    .eq("id", source.channel_id)
+    .maybeSingle();
+  if (!channel) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
   const { data: dup, error: dupError } = await admin.from("overlays").insert({
     channel_id: source.channel_id,
     name: `${source.name} Copy`,

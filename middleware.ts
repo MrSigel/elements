@@ -27,9 +27,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const testAuth = req.cookies.get("dev-test-auth")?.value;
-  if (testAuth === "1") {
-    return NextResponse.next();
+  if (process.env.NODE_ENV !== "production") {
+    const testAuth = req.cookies.get("dev-test-auth")?.value;
+    if (testAuth === "1") {
+      return NextResponse.next();
+    }
   }
 
   const accessToken = req.cookies.get("sb-access-token")?.value;

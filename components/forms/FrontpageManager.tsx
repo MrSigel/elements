@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 const PAGE_TYPE_LABELS: Record<string, string> = {
   bonushunt: "Bonus Hunt",
@@ -49,21 +49,44 @@ export function FrontpageManager({
 }) {
   const [overlayId, setOverlayId] = useState(overlays[0]?.id ?? "");
   const [pageType, setPageType] = useState("bonushunt");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
 
-  async function createPage() {
-    await fetch("/api/frontpages/create", {
+  const doFetch = useCallback(async (key: string, url: string, init: RequestInit) => {
+    setLoading(key);
+    setError(null);
+    try {
+      const res = await fetch(url, init);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? `Request failed (${res.status})`);
+      }
+      location.reload();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setLoading(null);
+    }
+  }, []);
+
+  function createPage() {
+    doFetch("create", "/api/frontpages/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ overlayId, pageType, enabled: true })
     });
-    location.reload();
   }
-  async function toggle(id: string, enabled: boolean) {
-    await fetch(`/api/frontpages/${id}/toggle`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !enabled }) });
-    location.reload();
+  function toggle(id: string, enabled: boolean) {
+    doFetch(`toggle-${id}`, `/api/frontpages/${id}/toggle`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !enabled }) });
   }
-  async function rotate(id: string) { await fetch(`/api/frontpages/${id}/rotate-token`, { method: "POST" }); location.reload(); }
-  async function revoke(id: string) { await fetch(`/api/frontpages/${id}/revoke-token`, { method: "POST" }); location.reload(); }
+  function rotate(id: string) {
+    if (!confirm("Generate a new viewer link? The old link will stop working immediately.")) return;
+    doFetch(`rotate-${id}`, `/api/frontpages/${id}/rotate-token`, { method: "POST" });
+  }
+  function revoke(id: string) {
+    if (!confirm("Permanently revoke this viewer page link? This cannot be undone.")) return;
+    doFetch(`revoke-${id}`, `/api/frontpages/${id}/revoke-token`, { method: "POST" });
+  }
 
   if (overlays.length === 0) {
     return (
@@ -104,12 +127,18 @@ export function FrontpageManager({
             </select>
           </div>
           <div className="flex items-end">
-            <button onClick={createPage} className="rounded bg-accent text-black px-4 py-2 text-sm font-semibold hover:bg-accent/90 transition-colors w-full sm:w-auto">
-              Create Page
+            <button onClick={createPage} disabled={!!loading} className="rounded bg-accent text-black px-4 py-2 text-sm font-semibold hover:bg-accent/90 transition-colors w-full sm:w-auto disabled:opacity-50">
+              {loading === "create" ? "Creating…" : "Create Page"}
             </button>
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-sm text-danger">
+          {error}
+        </div>
+      )}
 
       {/* Pages list */}
       {pages.length === 0 ? (
@@ -154,23 +183,26 @@ export function FrontpageManager({
                   <div className="flex flex-wrap gap-2 flex-shrink-0">
                     <button
                       onClick={() => toggle(p.id, p.enabled)}
-                      className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${p.enabled ? "bg-panelMuted hover:bg-panelMuted/80" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"}`}
+                      disabled={!!loading}
+                      className={`rounded px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${p.enabled ? "bg-panelMuted hover:bg-panelMuted/80" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"}`}
                     >
-                      {p.enabled ? "Disable" : "Enable"}
+                      {loading === `toggle-${p.id}` ? "…" : p.enabled ? "Disable" : "Enable"}
                     </button>
                     <button
                       onClick={() => rotate(p.id)}
-                      className="rounded bg-panelMuted px-3 py-1.5 text-xs font-medium hover:bg-panelMuted/80 transition-colors"
+                      disabled={!!loading}
+                      className="rounded bg-panelMuted px-3 py-1.5 text-xs font-medium hover:bg-panelMuted/80 transition-colors disabled:opacity-50"
                       title="Generate a new link — the old link will stop working immediately"
                     >
-                      Rotate Link
+                      {loading === `rotate-${p.id}` ? "…" : "Rotate Link"}
                     </button>
                     <button
                       onClick={() => revoke(p.id)}
-                      className="rounded px-3 py-1.5 text-xs font-medium text-subtle hover:text-danger hover:bg-danger/5 transition-colors"
+                      disabled={!!loading}
+                      className="rounded px-3 py-1.5 text-xs font-medium text-subtle hover:text-danger hover:bg-danger/5 transition-colors disabled:opacity-50"
                       title="Permanently disable this page's public link"
                     >
-                      Revoke
+                      {loading === `revoke-${p.id}` ? "…" : "Revoke"}
                     </button>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 type OverlayRow = {
   id: string;
@@ -42,14 +42,44 @@ function CopyButton({ value, label }: { value: string; label?: string }) {
 }
 
 export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
-  async function publish(id: string, published: boolean) {
-    await fetch(`/api/overlay/${id}/publish`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ published }) });
-    location.reload();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null); // stores "{action}-{id}"
+
+  const doFetch = useCallback(async (key: string, url: string, init: RequestInit) => {
+    setLoading(key);
+    setError(null);
+    try {
+      const res = await fetch(url, init);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? `Request failed (${res.status})`);
+      }
+      location.reload();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setLoading(null);
+    }
+  }, []);
+
+  function publish(id: string, published: boolean) {
+    doFetch(`publish-${id}`, `/api/overlay/${id}/publish`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ published }) });
   }
-  async function rotate(id: string) { await fetch(`/api/overlay/${id}/rotate-token`, { method: "POST" }); location.reload(); }
-  async function revoke(id: string) { await fetch(`/api/overlay/${id}/revoke-token`, { method: "POST" }); location.reload(); }
-  async function duplicate(id: string) { await fetch(`/api/overlay/${id}/duplicate`, { method: "POST" }); location.reload(); }
-  async function remove(id: string) { await fetch(`/api/overlay/${id}/delete`, { method: "DELETE" }); location.reload(); }
+  function rotate(id: string) {
+    if (!confirm("Generate a new OBS URL? You'll need to update the URL in OBS after rotating.")) return;
+    doFetch(`rotate-${id}`, `/api/overlay/${id}/rotate-token`, { method: "POST" });
+  }
+  function revoke(id: string) {
+    if (!confirm("Permanently revoke this overlay's URL? This cannot be undone — you'll need to generate a new one.")) return;
+    doFetch(`revoke-${id}`, `/api/overlay/${id}/revoke-token`, { method: "POST" });
+  }
+  function duplicate(id: string) {
+    doFetch(`dup-${id}`, `/api/overlay/${id}/duplicate`, { method: "POST" });
+  }
+  function remove(id: string) {
+    if (!confirm("Delete this overlay and all its widgets? This cannot be undone.")) return;
+    doFetch(`del-${id}`, `/api/overlay/${id}/delete`, { method: "DELETE" });
+  }
 
   if (overlays.length === 0) {
     return (
@@ -65,6 +95,11 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
 
   return (
     <div className="space-y-3">
+      {error && (
+        <div className="rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-sm text-danger">
+          {error}
+        </div>
+      )}
       {overlays.map((o) => {
         // Supabase may return a single object instead of array for one-to-one joins
         const tokenList = Array.isArray(o.overlay_tokens)
@@ -105,36 +140,41 @@ export function OverlayTable({ overlays }: { overlays: OverlayRow[] }) {
                 </Link>
                 <button
                   onClick={() => publish(o.id, !o.is_published)}
-                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${o.is_published ? "bg-panelMuted hover:bg-panelMuted/80" : "bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20"}`}
+                  disabled={!!loading}
+                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${o.is_published ? "bg-panelMuted hover:bg-panelMuted/80" : "bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20"}`}
                 >
-                  {o.is_published ? "Unpublish" : "Publish"}
+                  {loading === `publish-${o.id}` ? "…" : o.is_published ? "Unpublish" : "Publish"}
                 </button>
                 <button
                   onClick={() => duplicate(o.id)}
-                  className="rounded bg-panelMuted px-3 py-1.5 text-xs font-medium hover:bg-panelMuted/80 transition-colors"
+                  disabled={!!loading}
+                  className="rounded bg-panelMuted px-3 py-1.5 text-xs font-medium hover:bg-panelMuted/80 transition-colors disabled:opacity-50"
                   title="Create a copy of this overlay with all widgets"
                 >
-                  Duplicate
+                  {loading === `dup-${o.id}` ? "…" : "Duplicate"}
                 </button>
                 <button
                   onClick={() => rotate(o.id)}
-                  className="rounded bg-panelMuted px-3 py-1.5 text-xs font-medium hover:bg-panelMuted/80 transition-colors"
+                  disabled={!!loading}
+                  className="rounded bg-panelMuted px-3 py-1.5 text-xs font-medium hover:bg-panelMuted/80 transition-colors disabled:opacity-50"
                   title="Generate a new URL — update your OBS BrowserSource after rotating"
                 >
-                  Rotate URL
+                  {loading === `rotate-${o.id}` ? "…" : "Rotate URL"}
                 </button>
                 <button
                   onClick={() => revoke(o.id)}
-                  className="rounded px-3 py-1.5 text-xs font-medium text-subtle hover:text-danger hover:bg-danger/5 transition-colors"
+                  disabled={!!loading}
+                  className="rounded px-3 py-1.5 text-xs font-medium text-subtle hover:text-danger hover:bg-danger/5 transition-colors disabled:opacity-50"
                   title="Permanently disable this overlay's public URL"
                 >
-                  Revoke
+                  {loading === `revoke-${o.id}` ? "…" : "Revoke"}
                 </button>
                 <button
                   onClick={() => remove(o.id)}
-                  className="rounded bg-danger/10 text-danger px-3 py-1.5 text-xs font-medium hover:bg-danger/20 transition-colors"
+                  disabled={!!loading}
+                  className="rounded bg-danger/10 text-danger px-3 py-1.5 text-xs font-medium hover:bg-danger/20 transition-colors disabled:opacity-50"
                 >
-                  Delete
+                  {loading === `del-${o.id}` ? "…" : "Delete"}
                 </button>
               </div>
             </div>

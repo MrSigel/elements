@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function ChannelFrontpagePage({ params }: { params: Promise
   const admin = createServiceClient();
 
   const { data: channel } = await admin.from("channels").select("id").eq("slug", channelSlug).maybeSingle();
-  if (!channel) return null;
+  if (!channel) return notFound();
 
   const { data: pages } = await admin
     .from("viewer_pages")

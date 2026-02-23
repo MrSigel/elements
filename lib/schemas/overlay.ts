@@ -41,7 +41,7 @@ export const widgetConfigUpsertSchema = z.object({
 
 export const frontpageCreateSchema = z.object({
   overlayId: z.string().uuid(),
-  pageType: z.enum(["bonushunt","tournament","requests"]),
+  pageType: z.enum(["bonushunt","tournament","requests","loyalty","battle"]),
   enabled: z.boolean().default(true)
 });
 
