@@ -46,9 +46,8 @@ export async function POST() {
   await admin.from("livechat_messages").insert({
     session_id: session.id,
     sender: "system",
-    body: "Support linked. Schreib hier und die Nachricht geht direkt nach Discord."
+    body: "Welcome to Pulseframelabs' live chat. We are happy to assist you and usually respond within minutes during German business hours: 8:00 a.m. to 7:00 p.m."
   });
 
   return NextResponse.json({ sessionId: session.id, sessionToken });
 }
-

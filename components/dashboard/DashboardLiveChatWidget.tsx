@@ -21,9 +21,9 @@ export function DashboardLiveChatWidget() {
   const [error, setError] = useState("");
 
   function normalizeError(raw: string) {
-    if (raw.startsWith("discord_rate_limited")) return "Discord ist kurz rate-limited. Bitte in 10-30 Sekunden erneut senden.";
-    if (raw.startsWith("discord_api_")) return "Discord API Fehler. Bitte Bot-Rechte und Kanal-ID prüfen.";
-    if (raw === "discord_not_configured") return "Discord ist noch nicht konfiguriert (Token/Kanal-ID fehlt).";
+    if (raw.startsWith("discord_rate_limited")) return "Discord is temporarily rate-limited. Please try again in 10-30 seconds.";
+    if (raw.startsWith("discord_api_")) return "Discord API error. Please verify bot permissions and channel ID.";
+    if (raw === "discord_not_configured") return "Discord is not configured yet (missing token or channel ID).";
     return raw;
   }
 
@@ -122,17 +122,16 @@ export function DashboardLiveChatWidget() {
         <div className="mb-2 w-[340px] max-w-[calc(100vw-2rem)] rounded-xl border border-[#2a3142] bg-[#0d1320] p-3 text-xs text-slate-200 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <p className="font-semibold text-white">Live Support</p>
-            <span className="text-[10px] text-slate-400">Discord bridge</span>
           </div>
           <div className="mb-2 h-56 overflow-y-auto rounded-md border border-[#1e2535] bg-[#0a0f18] p-2">
             {messages.length === 0 ? (
-              <p className="text-slate-400">Schreib uns direkt hier. Antworten kommen live rein.</p>
+              <p className="text-slate-400">Write to us here. Replies appear live in this chat.</p>
             ) : (
               <div className="space-y-1.5">
                 {messages.map((msg) => (
                   <div key={msg.id} className="text-[11px]">
                     <span className={msg.sender === "viewer" ? "text-cyan-300" : msg.sender === "agent" ? "text-emerald-300" : "text-slate-300"}>
-                      {msg.sender === "viewer" ? "Du" : msg.sender === "agent" ? "Support" : "System"}:
+                      {msg.sender === "viewer" ? "You" : msg.sender === "agent" ? "Support" : "System"}:
                     </span>{" "}
                     <span className="text-slate-100">{msg.body}</span>
                   </div>
@@ -148,7 +147,7 @@ export function DashboardLiveChatWidget() {
                 if (e.key === "Enter") void sendMessage();
               }}
               maxLength={1000}
-              placeholder="Nachricht eingeben..."
+              placeholder="Type your message..."
               className="h-9 flex-1 rounded-md border border-[#2a3142] bg-[#111827] px-2 text-xs text-white outline-none focus:border-emerald-400"
             />
             <button
@@ -157,7 +156,7 @@ export function DashboardLiveChatWidget() {
               disabled={loading || !input.trim()}
               className="h-9 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white disabled:opacity-50"
             >
-              Senden
+              Send
             </button>
           </div>
           {error ? <p className="mt-2 text-[11px] text-rose-300">{error}</p> : null}

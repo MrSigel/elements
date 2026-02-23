@@ -21,9 +21,6 @@ export default async function ChannelStartseitePage({ params }: { params: Promis
             Casino Deals
           </h1>
         </div>
-        <p className="text-sm ml-3" style={{ color: "rgba(255,255,255,0.4)" }}>
-          Exclusive offers from {channelSlug}
-        </p>
       </div>
 
       {deals.length === 0 ? (
