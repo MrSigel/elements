@@ -6,6 +6,19 @@ import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function formatDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "medium" });
+  } catch {
+    return iso;
+  }
+}
+
+function formatEvent(widgetType: string, eventType: string) {
+  const fmt = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return `${fmt(widgetType)} — ${fmt(eventType)}`;
+}
+
 export default async function LogsPage() {
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
@@ -28,33 +41,58 @@ export default async function LogsPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Logs & Audit</h2>
-          <Link href="/api/logs/export" className="rounded bg-panelMuted px-3 py-2">Export CSV</Link>
+      <div className="space-y-8 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-text">Logs</h1>
+            <p className="text-sm text-subtle mt-1">Audit trail of all actions and widget events on your channel.</p>
+          </div>
+          <Link
+            href="/api/logs/export"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-panelMuted px-3 py-2 text-xs font-medium hover:bg-panelMuted/80 transition-colors flex-shrink-0"
+          >
+            Export CSV ↓
+          </Link>
         </div>
+
+        {/* Audit logs */}
         <section>
-          <h3 className="text-lg font-medium mb-2">Audit</h3>
-          <div className="space-y-2">
-            {logs?.map((l, idx) => (
-              <div key={idx} className="rounded-md border border-panelMuted bg-panel p-3 text-sm">
-                <span className="font-mono text-subtle">{new Date(l.created_at).toISOString()}</span> {l.action}
-              </div>
-            ))}
-          </div>
+          <h2 className="text-sm font-semibold text-text mb-3">Audit Trail</h2>
+          {!logs?.length ? (
+            <div className="rounded-lg border border-panelMuted bg-panel p-6 text-center">
+              <p className="text-xs text-subtle">No audit activity yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {logs.map((l, idx) => (
+                <div key={idx} className="rounded-md border border-panelMuted bg-panel px-4 py-2.5 text-sm flex items-center gap-4">
+                  <span className="font-mono text-xs text-subtle/60 flex-shrink-0 w-36">{formatDate(l.created_at)}</span>
+                  <span className="text-text">{l.action}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
+
+        {/* Widget events */}
         <section>
-          <h3 className="text-lg font-medium mb-2">Widget Events</h3>
-          <div className="space-y-2">
-            {events?.map((e, idx) => (
-              <div key={idx} className="rounded-md border border-panelMuted bg-panel p-3 text-sm">
-                <span className="font-mono text-subtle">{new Date(e.created_at).toISOString()}</span> {e.widget_type}.{e.event_type}
-              </div>
-            ))}
-          </div>
+          <h2 className="text-sm font-semibold text-text mb-3">Widget Events</h2>
+          {!events?.length ? (
+            <div className="rounded-lg border border-panelMuted bg-panel p-6 text-center">
+              <p className="text-xs text-subtle">No widget events yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {events.map((e, idx) => (
+                <div key={idx} className="rounded-md border border-panelMuted bg-panel px-4 py-2.5 text-sm flex items-center gap-4">
+                  <span className="font-mono text-xs text-subtle/60 flex-shrink-0 w-36">{formatDate(e.created_at)}</span>
+                  <span className="text-text">{formatEvent(e.widget_type, e.event_type)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </DashboardShell>
   );
 }
-

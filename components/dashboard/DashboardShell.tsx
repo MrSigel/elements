@@ -160,7 +160,7 @@ export function DashboardShell({
               <span className="text-black font-black text-sm select-none">E</span>
             </div>
             <div className="leading-none min-w-0">
-              <p className="font-black text-[13px] tracking-[0.1em] uppercase text-text truncate">Elements</p>
+              <p className="font-black text-[13px] tracking-[0.1em] uppercase text-text truncate">Pulseframelabs</p>
               <p className="text-[10px] text-subtle/50 mt-0.5">Studio</p>
             </div>
           </div>

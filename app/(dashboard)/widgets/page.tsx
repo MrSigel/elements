@@ -29,9 +29,19 @@ export default async function WidgetsPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold">Widgets</h2>
-        {overlayId ? <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} /> : <p className="text-subtle">Create an overlay first.</p>}
+      <div className="space-y-6 p-6">
+        <div>
+          <h1 className="text-2xl font-black text-text">Widgets</h1>
+          <p className="text-sm text-subtle mt-1">Add widgets to your overlay and configure their behavior. Use Live Controls to trigger events manually during your stream.</p>
+        </div>
+        {overlayId ? (
+          <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} />
+        ) : (
+          <div className="rounded-lg border border-panelMuted bg-panel p-8 text-center">
+            <p className="text-sm font-semibold text-text mb-1">No overlay yet</p>
+            <p className="text-xs text-subtle">Go to <a href="/overlays" className="text-accent hover:underline">Overlays</a> and create your first overlay before adding widgets.</p>
+          </div>
+        )}
       </div>
     </DashboardShell>
   );

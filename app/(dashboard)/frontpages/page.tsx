@@ -28,8 +28,13 @@ export default async function FrontpagesPage() {
 
   return (
     <DashboardShell>
-      <h2 className="text-2xl font-semibold mb-6">Frontpages Manager</h2>
-      <FrontpageManager overlays={overlays ?? []} pages={(pages ?? []) as never[]} />
+      <div className="space-y-6 p-6">
+        <div>
+          <h1 className="text-2xl font-black text-text">Viewer Pages</h1>
+          <p className="text-sm text-subtle mt-1">Create public viewer pages your chat can open during a stream — bonus hunt trackers, tournament scoreboards, slot request lists, and more.</p>
+        </div>
+        <FrontpageManager overlays={overlays ?? []} pages={(pages ?? []) as never[]} />
+      </div>
     </DashboardShell>
   );
 }

@@ -25,18 +25,13 @@ export default async function WebsitePage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold">Website</h2>
-        <p className="text-sm text-subtle">Edit your landing page content, navigation title, casino deals and giveaways.</p>
+      <div className="space-y-6 p-6">
+        <div>
+          <h1 className="text-2xl font-black text-text">Streamer Landing Page</h1>
+          <p className="text-sm text-subtle mt-1">Edit your public landing page — casino deals, giveaways, and navigation branding. Changes are live instantly.</p>
+        </div>
 
         <WebsiteBuilder publicUrl={publicUrl} channelSlug={channelSlug} initialConfig={initialConfig} />
-
-        <section className="rounded-xl border border-panelMuted bg-panel p-5">
-          <h3 className="text-lg font-semibold mb-2">Current Playing Auto-Tracking</h3>
-          <p className="text-sm text-subtle">
-            You do not need to enter the current slot manually if your extension is connected. It can be updated automatically through ingest.
-          </p>
-        </section>
       </div>
     </DashboardShell>
   );

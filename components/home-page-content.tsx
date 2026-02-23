@@ -174,7 +174,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center shadow-lg shadow-accent/30">
               <span className="text-black font-black text-sm">E</span>
             </div>
-            <span className="text-base font-black tracking-[0.15em] uppercase">Elements</span>
+            <span className="text-base font-black tracking-[0.15em] uppercase">Pulseframelabs</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#widgets" className="text-sm text-subtle hover:text-accent transition-colors">
@@ -630,7 +630,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                 </span>
               </h2>
               <p className="text-subtle mb-8 max-w-xl mx-auto">
-                Join thousands of casino streamers who trust Elements for their live operations.
+                Join thousands of casino streamers who trust Pulseframelabs for their live operations.
               </p>
               <Link
                 href={isLoggedIn ? "/overlays" : "/auth"}
@@ -652,9 +652,9 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center">
               <span className="text-black font-black text-[10px]">E</span>
             </div>
-            <span className="text-sm font-black tracking-wider text-subtle">ELEMENTS</span>
+            <span className="text-sm font-black tracking-wider text-subtle">PULSEFRAMELABS</span>
           </div>
-          <p className="text-xs text-subtle/60">© {new Date().getFullYear()} Elements. All rights reserved.</p>
+          <p className="text-xs text-subtle/60">© {new Date().getFullYear()} Pulseframelabs. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#widgets" className="text-xs text-subtle/60 hover:text-subtle transition-colors">
               Widgets

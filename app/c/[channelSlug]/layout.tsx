@@ -34,7 +34,7 @@ export default async function ChannelLayout({
           background: "rgba(0,0,0,0.25)"
         }}
       >
-        Powered by <span style={{ color: "#f5c451" }}>Elements</span>
+        Powered by <span style={{ color: "#f5c451" }}>Pulseframelabs</span>
       </footer>
       <PublicHelpWidget />
     </div>

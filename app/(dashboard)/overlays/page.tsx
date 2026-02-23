@@ -30,8 +30,11 @@ export default async function OverlaysPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-5">
-        <h2 className="text-2xl font-semibold">Overlay Manager</h2>
+      <div className="space-y-6 p-6">
+        <div>
+          <h1 className="text-2xl font-black text-text">Overlays</h1>
+          <p className="text-sm text-subtle mt-1">Create and manage your OBS overlay sources. Each overlay gets a public BrowserSource URL you add to OBS.</p>
+        </div>
         <OverlayCreateForm />
         <OverlayTable overlays={(overlays ?? []) as never[]} />
       </div>

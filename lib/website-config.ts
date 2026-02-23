@@ -21,7 +21,7 @@ export type WebsiteConfig = {
 };
 
 const DEFAULT_CONFIG: WebsiteConfig = {
-  navBrand: "Elements",
+  navBrand: "Pulseframelabs",
   deals: [],
   giveaways: []
 };

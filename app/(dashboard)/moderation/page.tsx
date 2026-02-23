@@ -39,11 +39,18 @@ export default async function ModerationPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Moderation Center</h2>
+      <div className="space-y-6 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-text">Moderation</h1>
+            <p className="text-sm text-subtle mt-1">Manage who has access to your overlays. Invite moderators and configure per-widget permissions.</p>
+          </div>
+          <Link href="/api/logs/export" className="inline-flex items-center gap-1.5 rounded-lg bg-panelMuted px-3 py-2 text-xs font-medium hover:bg-panelMuted/80 transition-colors flex-shrink-0">
+            Export Audit CSV ↓
+          </Link>
+        </div>
         <ModInviteForm channels={channels ?? []} />
         <PermissionMatrix roles={(roles ?? []) as never[]} permissions={(permissions ?? []) as never[]} overlays={overlays ?? []} widgets={widgets ?? []} />
-        <Link href="/api/logs/export" className="inline-block rounded bg-panelMuted px-3 py-2">Export Audit CSV</Link>
       </div>
     </DashboardShell>
   );
