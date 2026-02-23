@@ -532,4 +532,344 @@ input, button, select, textarea {
   background: rgba(245, 196, 81, 0.05);
 }
 
+@keyframes ovrFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes ovrShimmer {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(115%);
+  }
+}
+
+@keyframes ovrPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(245, 196, 81, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(245, 196, 81, 0.35);
+  }
+}
+
+@keyframes ovrRowIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ovr-root {
+  background:
+    radial-gradient(900px 500px at 5% 10%, rgba(245, 196, 81, 0.09), transparent 60%),
+    radial-gradient(800px 600px at 95% 90%, rgba(178, 34, 52, 0.1), transparent 60%);
+}
+
+.ovr-shell {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 196, 81, 0.28);
+  background: linear-gradient(145deg, rgba(15, 21, 30, 0.95), rgba(10, 14, 21, 0.88));
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  backdrop-filter: blur(3px);
+  animation: ovrFloat 6s ease-in-out infinite;
+}
+
+.ovr-shell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(245, 196, 81, 0.16) 50%, transparent 100%);
+  transform: translateX(-110%);
+  animation: ovrShimmer 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ovr-shell-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(245, 196, 81, 0.06), transparent 55%);
+}
+
+.ovr-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(245, 196, 81, 0.2);
+  background: linear-gradient(90deg, rgba(245, 196, 81, 0.09), rgba(178, 34, 52, 0.08));
+  padding: 8px 10px;
+}
+
+.ovr-title {
+  margin: 0;
+  color: #f7e3ad;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ovr-kind {
+  border: 1px solid rgba(245, 196, 81, 0.35);
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: #f5c451;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.ovr-content {
+  position: relative;
+  z-index: 1;
+  height: calc(100% - 40px);
+  padding: 10px;
+  color: #e5edf5;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ovr-label {
+  margin: 0;
+  color: #f5c451;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ovr-value {
+  margin: 0;
+  color: #f5c451;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ovr-subtle {
+  margin: 0;
+  color: #9eb0c3;
+  font-size: 11px;
+}
+
+.ovr-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 196, 81, 0.35);
+  background: rgba(245, 196, 81, 0.12);
+  padding: 2px 9px;
+  color: #f5c451;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ovr-chip--active {
+  color: #0c1018;
+  background: linear-gradient(135deg, #f5c451, #e8a020);
+}
+
+.ovr-chip--live {
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.15);
+  animation: ovrPulse 1.7s ease-in-out infinite;
+}
+
+.ovr-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 196, 81, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.ovr-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f5c451, #e8a020, #b22234);
+  box-shadow: 0 0 14px rgba(245, 196, 81, 0.4);
+  transition: width 500ms ease-out;
+}
+
+.ovr-metric-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.ovr-metric-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.ovr-stat-tile {
+  border: 1px solid rgba(245, 196, 81, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 7px;
+  min-width: 0;
+}
+
+.ovr-stat-tile--accent {
+  border-color: rgba(245, 196, 81, 0.3);
+  background: rgba(245, 196, 81, 0.1);
+}
+
+.ovr-stat-tile--success {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.ovr-stat-tile--danger {
+  border-color: rgba(244, 63, 94, 0.32);
+  background: rgba(244, 63, 94, 0.12);
+}
+
+.ovr-stat-label {
+  margin: 0;
+  color: #9eb0c3;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.ovr-stat-value {
+  margin: 2px 0 0;
+  color: #f7f8fb;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ovr-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 100%;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.ovr-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid rgba(245, 196, 81, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 8px;
+  animation: ovrRowIn 260ms ease-out both;
+}
+
+.ovr-list-left {
+  min-width: 0;
+  color: #e5edf5;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ovr-list-right {
+  color: #f5c451;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ovr-stack {
+  border-top: 1px solid rgba(245, 196, 81, 0.16);
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ovr-vs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.ovr-vs-badge {
+  border: 1px solid rgba(245, 196, 81, 0.36);
+  border-radius: 999px;
+  background: rgba(245, 196, 81, 0.15);
+  color: #f5c451;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 5px 7px;
+  animation: ovrPulse 1.8s ease-in-out infinite;
+}
+
+.ovr-team-card {
+  border: 1px solid rgba(245, 196, 81, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  text-align: center;
+  padding: 7px;
+}
+
+.ovr-team-name {
+  margin: 0;
+  color: #e5edf5;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ovr-team-score {
+  margin: 2px 0 1px;
+  color: #f5c451;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ovr-winner-banner {
+  border: 1px solid rgba(245, 196, 81, 0.34);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(245, 196, 81, 0.15), rgba(178, 34, 52, 0.14));
+  color: #f7e3ad;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 8px;
+}
+
 

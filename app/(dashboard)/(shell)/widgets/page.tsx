@@ -1,4 +1,3 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { WidgetsTabs } from "@/components/dashboard/WidgetsTabs";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
@@ -10,11 +9,7 @@ export default async function WidgetsPage() {
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) {
-    return (
-      <DashboardShell>
-        <p className="text-subtle">Unauthorized.</p>
-      </DashboardShell>
-    );
+    return <p className="text-subtle p-6">Unauthorized.</p>;
   }
 
   const channelIds = await getAccessibleChannelIds(auth.user.id);
@@ -28,22 +23,19 @@ export default async function WidgetsPage() {
     : { data: [] as never[] };
 
   return (
-    <DashboardShell>
-      <div className="space-y-6 p-6">
-        <div>
-          <h1 className="text-2xl font-black text-text">Widgets</h1>
-          <p className="text-sm text-subtle mt-1">Add widgets to your overlay and configure their behavior. Use Live Controls to trigger events manually during your stream.</p>
-        </div>
-        {overlayId ? (
-          <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} />
-        ) : (
-          <div className="rounded-lg border border-panelMuted bg-panel p-8 text-center">
-            <p className="text-sm font-semibold text-text mb-1">No overlay yet</p>
-            <p className="text-xs text-subtle">Go to <a href="/overlays" className="text-accent hover:underline">Overlays</a> and create your first overlay before adding widgets.</p>
-          </div>
-        )}
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-2xl font-black text-text">Widgets</h1>
+        <p className="text-sm text-subtle mt-1">Add widgets to your overlay and configure their behavior. Use Live Controls to trigger events manually during your stream.</p>
       </div>
-    </DashboardShell>
+      {overlayId ? (
+        <WidgetsTabs overlayId={overlayId} widgets={(instances ?? []) as never[]} />
+      ) : (
+        <div className="rounded-lg border border-panelMuted bg-panel p-8 text-center">
+          <p className="text-sm font-semibold text-text mb-1">No overlay yet</p>
+          <p className="text-xs text-subtle">Go to <a href="/overlays" className="text-accent hover:underline">Overlays</a> and create your first overlay before adding widgets.</p>
+        </div>
+      )}
+    </div>
   );
 }
-
