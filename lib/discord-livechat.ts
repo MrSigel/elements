@@ -24,6 +24,10 @@ export function hasDiscordLivechatConfig() {
 }
 
 async function discordRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  return discordRequestInternal<T>(path, init, 0);
+}
+
+async function discordRequestInternal<T>(path: string, init: RequestInit | undefined, attempt: number): Promise<T> {
   const { token } = getDiscordConfig();
   const res = await fetch(`https://discord.com/api/v10${path}`, {
     ...init,
@@ -36,8 +40,13 @@ async function discordRequest<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     if (res.status === 429) {
-      const retryAfter = res.headers.get("retry-after") || "";
-      throw new Error(`discord_rate_limited${retryAfter ? `_retry_after_${retryAfter}s` : ""}`);
+      const retryAfterRaw = res.headers.get("retry-after") || "";
+      const retryAfterSec = Number.parseFloat(retryAfterRaw);
+      if (attempt < 1 && Number.isFinite(retryAfterSec) && retryAfterSec > 0 && retryAfterSec <= 8) {
+        await new Promise((resolve) => setTimeout(resolve, Math.ceil(retryAfterSec * 1000)));
+        return discordRequestInternal<T>(path, init, attempt + 1);
+      }
+      throw new Error(`discord_rate_limited${retryAfterRaw ? `_retry_after_${retryAfterRaw}s` : ""}`);
     }
     const contentType = res.headers.get("content-type") || "";
     const msg = contentType.includes("application/json")

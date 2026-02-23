@@ -27,6 +27,9 @@ export function DashboardLiveChatWidget() {
     return raw;
   }
 
+  const welcomeMessage =
+    "Welcome to Pulseframelabs' live chat. We are happy to assist you and usually respond within minutes during German business hours: 8:00 a.m. to 7:00 p.m.";
+
   useEffect(() => {
     const raw = window.localStorage.getItem(SESSION_KEY);
     if (!raw) return;
@@ -52,7 +55,7 @@ export function DashboardLiveChatWidget() {
     };
     void run(true);
     const dbTimer = window.setInterval(() => void run(false), 2500);
-    const discordSyncTimer = window.setInterval(() => void run(true), 20000);
+    const discordSyncTimer = window.setInterval(() => void run(true), 60000);
     return () => {
       window.clearInterval(dbTimer);
       window.clearInterval(discordSyncTimer);
@@ -123,6 +126,9 @@ export function DashboardLiveChatWidget() {
           <div className="mb-2 flex items-center justify-between">
             <p className="font-semibold text-white">Live Support</p>
           </div>
+          <p className="mb-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5 text-[11px] leading-relaxed text-emerald-200">
+            {welcomeMessage}
+          </p>
           <div className="mb-2 h-56 overflow-y-auto rounded-md border border-[#1e2535] bg-[#0a0f18] p-2">
             {messages.length === 0 ? (
               <p className="text-slate-400">Write to us here. Replies appear live in this chat.</p>
