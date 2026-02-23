@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandIcon } from "@/components/BrandIcon";
 
 export function ChannelNav({ channelSlug, brand }: { channelSlug: string; brand: string }) {
   const pathname = usePathname();
@@ -20,12 +21,7 @@ export function ChannelNav({ channelSlug, brand }: { channelSlug: string; brand:
       <div className="mx-auto max-w-6xl flex items-center justify-between gap-4 px-6 py-3">
         {/* Brand */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
-          <div
-            className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #f5c451, #b22234)" }}
-          >
-            <span className="text-black font-black text-[10px] select-none">E</span>
-          </div>
+          <BrandIcon size="sm" />
           <p className="font-black text-sm uppercase tracking-widest text-white truncate max-w-[180px]">
             {brand}
           </p>

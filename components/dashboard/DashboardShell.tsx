@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { NAV_ITEMS } from "@/lib/constants";
 import { useState } from "react";
+import { BrandIcon } from "@/components/BrandIcon";
 
 // ── Inline SVG icons ──────────────────────────────────────────────────────────
 
@@ -153,12 +154,7 @@ export function DashboardShell({
         {/* Logo */}
         <div className="px-4 py-5 border-b border-white/5 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-accent/20 flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #f5c451, #b22234)" }}
-            >
-              <span className="text-black font-black text-sm select-none">E</span>
-            </div>
+            <BrandIcon size="md" />
             <div className="leading-none min-w-0">
               <p className="font-black text-[13px] tracking-[0.1em] uppercase text-text truncate">Pulseframelabs</p>
               <p className="text-[10px] text-subtle/50 mt-0.5">Studio</p>

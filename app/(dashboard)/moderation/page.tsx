@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ModInviteForm } from "@/components/forms/ModInviteForm";
 import { PermissionMatrix } from "@/components/forms/PermissionMatrix";
@@ -45,9 +44,9 @@ export default async function ModerationPage() {
             <h1 className="text-2xl font-black text-text">Moderation</h1>
             <p className="text-sm text-subtle mt-1">Manage who has access to your overlays. Invite moderators and configure per-widget permissions.</p>
           </div>
-          <Link href="/api/logs/export" className="inline-flex items-center gap-1.5 rounded-lg bg-panelMuted px-3 py-2 text-xs font-medium hover:bg-panelMuted/80 transition-colors flex-shrink-0">
+          <a href="/api/logs/export" download className="inline-flex items-center gap-1.5 rounded-lg bg-panelMuted px-3 py-2 text-xs font-medium hover:bg-panelMuted/80 transition-colors flex-shrink-0">
             Export Audit CSV ↓
-          </Link>
+          </a>
         </div>
         <ModInviteForm channels={channels ?? []} />
         <PermissionMatrix roles={(roles ?? []) as never[]} permissions={(permissions ?? []) as never[]} overlays={overlays ?? []} widgets={widgets ?? []} />

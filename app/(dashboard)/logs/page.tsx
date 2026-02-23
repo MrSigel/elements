@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
@@ -47,12 +46,13 @@ export default async function LogsPage() {
             <h1 className="text-2xl font-black text-text">Logs</h1>
             <p className="text-sm text-subtle mt-1">Audit trail of all actions and widget events on your channel.</p>
           </div>
-          <Link
+          <a
             href="/api/logs/export"
+            download
             className="inline-flex items-center gap-1.5 rounded-lg bg-panelMuted px-3 py-2 text-xs font-medium hover:bg-panelMuted/80 transition-colors flex-shrink-0"
           >
             Export CSV ↓
-          </Link>
+          </a>
         </div>
 
         {/* Audit logs */}

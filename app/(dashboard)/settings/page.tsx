@@ -1,5 +1,4 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import Link from "next/link";
 
 export default function SettingsPage() {
   return (
@@ -30,12 +29,13 @@ export default function SettingsPage() {
                 <li className="flex items-start gap-1.5"><span className="text-accent mt-0.5">•</span>Links your Twitch identity to your overlays and viewer pages</li>
                 <li className="flex items-start gap-1.5"><span className="text-accent mt-0.5">•</span>Enables automated hunt tracking and chat commands</li>
               </ul>
-              <Link
+              {/* Use plain <a> — Next.js Link would prefetch this as RSC, causing a CORS error with Twitch's OAuth redirect */}
+              <a
                 href="/api/auth/twitch/start"
                 className="inline-flex items-center justify-center w-full rounded-lg border border-accent/30 bg-accent/10 px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/20 transition-colors"
               >
                 Connect Twitch
-              </Link>
+              </a>
             </div>
 
             {/* Discord */}

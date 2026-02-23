@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { BrandIcon } from "@/components/BrandIcon";
 import { useRef, useState } from "react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 
@@ -171,9 +172,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
       >
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 md:px-10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center shadow-lg shadow-accent/30">
-              <span className="text-black font-black text-sm">E</span>
-            </div>
+            <BrandIcon size="md" />
             <span className="text-base font-black tracking-[0.15em] uppercase">Pulseframelabs</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -649,9 +648,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
       <footer className="border-t border-white/5 bg-black/20 backdrop-blur-sm relative z-10">
         <div className="mx-auto max-w-7xl px-5 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-accent to-rose-700 flex items-center justify-center">
-              <span className="text-black font-black text-[10px]">E</span>
-            </div>
+            <BrandIcon size="sm" />
             <span className="text-sm font-black tracking-wider text-subtle">PULSEFRAMELABS</span>
           </div>
           <p className="text-xs text-subtle/60">© {new Date().getFullYear()} Pulseframelabs. All rights reserved.</p>
