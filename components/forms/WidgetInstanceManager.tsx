@@ -57,6 +57,8 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
   const [name, setName] = useState("New Widget");
   const [kind, setKind] = useState(kinds[0]);
   const [tokenLoading, setTokenLoading] = useState<Record<string, boolean>>({});
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
@@ -70,13 +72,24 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
   }
 
   async function createWidget() {
-    const pos = nextGridPosition(widgets.length);
-    await fetch("/api/widget-instances", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ overlayId, kind, name, x: pos.x, y: pos.y, width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT })
-    });
-    location.reload();
+    setCreateError(null);
+    setCreating(true);
+    try {
+      const pos = nextGridPosition(widgets.length);
+      const res = await fetch("/api/widget-instances", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ overlayId, kind, name, x: pos.x, y: pos.y, width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT })
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setCreateError(body.message ?? body.error ?? "Failed to create widget.");
+        return;
+      }
+      location.reload();
+    } finally {
+      setCreating(false);
+    }
   }
 
   async function autoArrangeAll() {
@@ -139,13 +152,20 @@ export function WidgetInstanceManager({ overlayId, widgets }: { overlayId: strin
   return (
     <div className="space-y-3">
       {/* Create widget row */}
-      <div className="rounded-lg border border-panelMuted bg-panel p-3 flex gap-2">
-        <select className="rounded bg-panelMuted px-3 py-2" value={kind} onChange={(e) => setKind(e.target.value)}>
-          {kinds.map((k) => <option key={k} value={k}>{k}</option>)}
-        </select>
-        <input className="rounded bg-panelMuted px-3 py-2" value={name} onChange={(e) => setName(e.target.value)} />
-        <button onClick={createWidget} className="rounded bg-accent text-black px-3 py-2">Add Widget</button>
-        <button onClick={autoArrangeAll} className="rounded bg-panelMuted px-3 py-2">Auto Arrange</button>
+      <div className="rounded-lg border border-panelMuted bg-panel p-3 space-y-2">
+        <div className="flex gap-2">
+          <select className="rounded bg-panelMuted px-3 py-2" value={kind} onChange={(e) => { setKind(e.target.value); setCreateError(null); }}>
+            {kinds.map((k) => <option key={k} value={k}>{k}</option>)}
+          </select>
+          <input className="rounded bg-panelMuted px-3 py-2 flex-1" value={name} onChange={(e) => setName(e.target.value)} />
+          <button onClick={createWidget} disabled={creating} className="rounded bg-accent text-black px-3 py-2 disabled:opacity-60">
+            {creating ? "Adding…" : "Add Widget"}
+          </button>
+          <button onClick={autoArrangeAll} className="rounded bg-panelMuted px-3 py-2">Auto Arrange</button>
+        </div>
+        {createError && (
+          <p className="text-xs text-danger bg-danger/10 rounded px-3 py-1.5">{createError}</p>
+        )}
       </div>
 
       {/* Widget list */}
