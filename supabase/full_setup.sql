@@ -734,4 +734,13 @@ alter table channels
 
 -- ===== END 20260222110000_bot_active.sql =====
 
+-- ===== BEGIN 20260223000000_website_config.sql =====
+
+-- Add website_config column to channels so config persists in the DB
+-- (replaces the previous file-based JSON storage which doesn't survive Render.com deploys)
+alter table channels
+  add column if not exists website_config jsonb not null default '{}'::jsonb;
+
+-- ===== END 20260223000000_website_config.sql =====
+
 
