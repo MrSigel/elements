@@ -6,6 +6,7 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-mo
 import { BrandIcon } from "@/components/BrandIcon";
 import { useRef, useState } from "react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
+import { CheckoutModal } from "@/components/CheckoutModal";
 
 interface HomePageContentProps {
   isLoggedIn: boolean;
@@ -158,8 +159,10 @@ function HeroStack() {
 
 export function HomePageContent({ isLoggedIn, features, workflow }: HomePageContentProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [checkout, setCheckout] = useState<{ plan: "pro" | "enterprise" } | null>(null);
 
   return (
+    <>
     <div className="min-h-screen text-text overflow-hidden relative">
       <AnimatedBackground />
 
@@ -503,13 +506,24 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                   )
                 )}
               </ul>
-              <Link
-                href={isLoggedIn ? "/overlays" : "/auth"}
-                className="block w-full rounded-xl py-3 text-center font-black text-black transition-all hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
-              >
-                Get Pro
-              </Link>
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => setCheckout({ plan: "pro" })}
+                  className="block w-full rounded-xl py-3 text-center font-black text-black transition-all hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+                >
+                  Get Pro
+                </button>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="block w-full rounded-xl py-3 text-center font-black text-black transition-all hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #f5c451, #e8a020)" }}
+                >
+                  Get Pro
+                </Link>
+              )}
             </motion.div>
 
             {/* Enterprise */}
@@ -537,12 +551,22 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
                   </li>
                 ))}
               </ul>
-              <Link
-                href={isLoggedIn ? "/overlays" : "/auth"}
-                className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
-              >
-                Contact Us
-              </Link>
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => setCheckout({ plan: "enterprise" })}
+                  className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
+                >
+                  Get Enterprise
+                </button>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="block w-full rounded-xl border border-accent/30 py-3 text-center font-bold text-accent hover:bg-accent/10 transition-colors"
+                >
+                  Get Enterprise
+                </Link>
+              )}
             </motion.div>
           </div>
         </section>
@@ -677,5 +701,10 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
         </Link>
       </div>
     </div>
+
+    {checkout && (
+      <CheckoutModal plan={checkout.plan} onClose={() => setCheckout(null)} />
+    )}
+    </>
   );
 }

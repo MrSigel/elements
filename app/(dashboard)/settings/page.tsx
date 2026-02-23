@@ -1,12 +1,57 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
-export default function SettingsPage() {
+const PLAN_META: Record<string, { label: string; color: string }> = {
+  starter:    { label: "Starter",    color: "bg-panelMuted text-subtle" },
+  pro:        { label: "Pro",        color: "bg-accent/10 text-accent border border-accent/25" },
+  enterprise: { label: "Enterprise", color: "bg-purple-500/10 text-purple-300 border border-purple-500/25" },
+};
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function SettingsPage() {
+  const userClient = await createServerClient();
+  const { data: auth } = await userClient.auth.getUser();
+
+  let plan = "starter";
+  let expiresAt: string | null = null;
+
+  if (auth.user) {
+    const admin = createServiceClient();
+    const { data: channel } = await admin
+      .from("channels")
+      .select("subscription_plan, subscription_expires_at")
+      .eq("owner_id", auth.user.id)
+      .limit(1)
+      .maybeSingle();
+    if (channel) {
+      plan = (channel as { subscription_plan?: string }).subscription_plan ?? "starter";
+      expiresAt = (channel as { subscription_expires_at?: string }).subscription_expires_at ?? null;
+    }
+  }
+
+  const meta = PLAN_META[plan] ?? PLAN_META.starter;
+  const expiry = expiresAt ? new Date(expiresAt) : null;
+
   return (
     <DashboardShell>
       <div className="space-y-6 p-6">
-        <div>
-          <h1 className="text-2xl font-black text-text">Settings</h1>
-          <p className="text-sm text-subtle mt-1">Account integrations and application settings.</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-text">Settings</h1>
+            <p className="text-sm text-subtle mt-1">Account integrations and application settings.</p>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${meta.color}`}>
+              {meta.label}
+            </span>
+            {expiry && plan !== "starter" && (
+              <p className="text-[10px] text-subtle mt-1">
+                Active until {expiry.toLocaleDateString()}
+              </p>
+            )}
+          </div>
         </div>
 
         <section className="rounded-xl border border-panelMuted bg-panel p-5 space-y-4">

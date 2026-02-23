@@ -16,7 +16,12 @@ const schema = z.object({
   TWITCH_REDIRECT_URI: z.string().optional().default(""),
   TWITCH_BOT_OAUTH_TOKEN: z.string().optional().default(""),
   TWITCH_BOT_USERNAME: z.string().optional().default(""),
-  INGEST_SHARED_SECRET: z.string().min(32)
+  INGEST_SHARED_SECRET: z.string().min(32),
+  CRYPTAPI_WALLET_BTC: z.string().default(""),
+  CRYPTAPI_WALLET_ETH: z.string().default(""),
+  CRYPTAPI_WALLET_USDT_TRC20: z.string().default(""),
+  CRYPTAPI_WALLET_LTC: z.string().default(""),
+  CRYPTAPI_WEBHOOK_SECRET: z.string().default("")
 });
 
 export const env = schema.parse({
@@ -30,5 +35,10 @@ export const env = schema.parse({
   TWITCH_REDIRECT_URI: clean(process.env.TWITCH_REDIRECT_URI),
   TWITCH_BOT_OAUTH_TOKEN: clean(process.env.TWITCH_BOT_OAUTH_TOKEN),
   TWITCH_BOT_USERNAME: clean(process.env.TWITCH_BOT_USERNAME),
-  INGEST_SHARED_SECRET: clean(process.env.INGEST_SHARED_SECRET)
+  INGEST_SHARED_SECRET: clean(process.env.INGEST_SHARED_SECRET),
+  CRYPTAPI_WALLET_BTC: clean(process.env.CRYPTAPI_WALLET_BTC),
+  CRYPTAPI_WALLET_ETH: clean(process.env.CRYPTAPI_WALLET_ETH),
+  CRYPTAPI_WALLET_USDT_TRC20: clean(process.env.CRYPTAPI_WALLET_USDT_TRC20),
+  CRYPTAPI_WALLET_LTC: clean(process.env.CRYPTAPI_WALLET_LTC),
+  CRYPTAPI_WEBHOOK_SECRET: clean(process.env.CRYPTAPI_WEBHOOK_SECRET)
 });
