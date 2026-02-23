@@ -92,15 +92,15 @@ export async function POST(req: NextRequest) {
   if (error || !inserted) return NextResponse.json({ error: "insert_failed" }, { status: 500 });
 
   if (!session.discord_thread_id) {
-    return NextResponse.json({ error: "discord_thread_missing" }, { status: 500 });
+    return NextResponse.json({ ok: true, delivery: "queued_local", message: inserted });
   }
 
   try {
     await sendMessageToDiscordThread(session.discord_thread_id, `Viewer: ${message}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "discord_send_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return NextResponse.json({ ok: true, delivery: "queued_local", warning: msg, message: inserted });
   }
 
-  return NextResponse.json({ ok: true, message: inserted });
+  return NextResponse.json({ ok: true, delivery: "discord", message: inserted });
 }

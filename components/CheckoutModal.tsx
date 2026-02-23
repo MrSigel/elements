@@ -26,6 +26,15 @@ const COIN_META: Record<Coin, { label: string; symbol: string; note?: string }> 
 const PLAN_LABELS: Record<Plan, string> = { pro: "Pro", enterprise: "Enterprise" };
 const PLAN_PRICES: Record<Plan, number> = { pro: 150, enterprise: 300 };
 
+function toFiniteNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
 function useCountdown(expiresAt: string | null) {
   const [remaining, setRemaining] = useState<number>(0);
   useEffect(() => {
@@ -106,7 +115,22 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
         setError(data.error ?? "Failed to create payment");
         return;
       }
-      setSession(data as PaymentSession);
+      const coinAmount = toFiniteNumber((data as { coinAmount?: unknown }).coinAmount);
+      if (coinAmount === null) {
+        setError("Invalid payment amount returned by server.");
+        return;
+      }
+      const normalized: PaymentSession = {
+        paymentId: String((data as { paymentId?: unknown }).paymentId ?? ""),
+        addressIn: String((data as { addressIn?: unknown }).addressIn ?? ""),
+        coinAmount,
+        coinLabel: String((data as { coinLabel?: unknown }).coinLabel ?? ""),
+        amountEur: toFiniteNumber((data as { amountEur?: unknown }).amountEur) ?? PLAN_PRICES[plan],
+        plan,
+        coin: selectedCoin,
+        expiresAt: String((data as { expiresAt?: unknown }).expiresAt ?? "")
+      };
+      setSession(normalized);
       setStep("awaiting");
     } catch {
       setError("Network error — please try again");
@@ -190,7 +214,7 @@ export function CheckoutModal({ plan, onClose }: { plan: Plan; onClose: () => vo
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-text">Send exactly:</p>
                 <span className="rounded-full bg-accent/10 border border-accent/25 px-2.5 py-1 text-xs font-bold text-accent font-mono">
-                  {session.coinAmount.toFixed(8).replace(/\.?0+$/, "")} {session.coinLabel}
+                  {(toFiniteNumber(session.coinAmount) ?? 0).toFixed(8).replace(/\.?0+$/, "")} {session.coinLabel}
                 </span>
               </div>
 
