@@ -35,7 +35,14 @@ async function discordRequest<T>(path: string, init?: RequestInit): Promise<T> {
     cache: "no-store"
   });
   if (!res.ok) {
-    const msg = await res.text().catch(() => "discord_request_failed");
+    if (res.status === 429) {
+      const retryAfter = res.headers.get("retry-after") || "";
+      throw new Error(`discord_rate_limited${retryAfter ? `_retry_after_${retryAfter}s` : ""}`);
+    }
+    const contentType = res.headers.get("content-type") || "";
+    const msg = contentType.includes("application/json")
+      ? JSON.stringify(await res.json().catch(() => ({ error: "discord_request_failed" })))
+      : "discord_request_failed";
     throw new Error(`discord_api_${res.status}:${msg}`);
   }
   return (await res.json()) as T;

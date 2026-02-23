@@ -20,6 +20,13 @@ export function DashboardLiveChatWidget() {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
 
+  function normalizeError(raw: string) {
+    if (raw.startsWith("discord_rate_limited")) return "Discord ist kurz rate-limited. Bitte in 10-30 Sekunden erneut senden.";
+    if (raw.startsWith("discord_api_")) return "Discord API Fehler. Bitte Bot-Rechte und Kanal-ID prüfen.";
+    if (raw === "discord_not_configured") return "Discord ist noch nicht konfiguriert (Token/Kanal-ID fehlt).";
+    return raw;
+  }
+
   useEffect(() => {
     const raw = window.localStorage.getItem(SESSION_KEY);
     if (!raw) return;
@@ -36,16 +43,20 @@ export function DashboardLiveChatWidget() {
 
   useEffect(() => {
     if (!sessionId || !sessionToken) return;
-    const run = async () => {
-      const url = `/api/livechat/messages?sessionId=${encodeURIComponent(sessionId)}&sessionToken=${encodeURIComponent(sessionToken)}`;
+    const run = async (syncDiscord = false) => {
+      const url = `/api/livechat/messages?sessionId=${encodeURIComponent(sessionId)}&sessionToken=${encodeURIComponent(sessionToken)}${syncDiscord ? "&sync=1" : ""}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) return;
       const data = (await res.json()) as { messages?: ChatMessage[] };
       setMessages(data.messages ?? []);
     };
-    void run();
-    const timer = window.setInterval(() => void run(), 2500);
-    return () => window.clearInterval(timer);
+    void run(true);
+    const dbTimer = window.setInterval(() => void run(false), 2500);
+    const discordSyncTimer = window.setInterval(() => void run(true), 20000);
+    return () => {
+      window.clearInterval(dbTimer);
+      window.clearInterval(discordSyncTimer);
+    };
   }, [sessionId, sessionToken]);
 
   async function ensureSession() {
@@ -67,7 +78,7 @@ export function DashboardLiveChatWidget() {
       return { sessionId: data.sessionId, sessionToken: data.sessionToken };
     } catch (err) {
       const message = err instanceof Error ? err.message : "session_failed";
-      setError(message);
+      setError(normalizeError(message));
       return null;
     } finally {
       setLoading(false);
@@ -93,7 +104,7 @@ export function DashboardLiveChatWidget() {
       if (data.message) setMessages((prev) => [...prev, data.message as ChatMessage]);
     } catch (err) {
       const messageText = err instanceof Error ? err.message : "send_failed";
-      setError(messageText);
+      setError(normalizeError(messageText));
       setInput(message);
     } finally {
       setLoading(false);
@@ -106,7 +117,7 @@ export function DashboardLiveChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
+    <div className="fixed bottom-4 right-4 z-50">
       {open ? (
         <div className="mb-2 w-[340px] max-w-[calc(100vw-2rem)] rounded-xl border border-[#2a3142] bg-[#0d1320] p-3 text-xs text-slate-200 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
@@ -138,13 +149,13 @@ export function DashboardLiveChatWidget() {
               }}
               maxLength={1000}
               placeholder="Nachricht eingeben..."
-              className="h-9 flex-1 rounded-md border border-[#2a3142] bg-[#111827] px-2 text-xs text-white outline-none focus:border-cyan-400"
+              className="h-9 flex-1 rounded-md border border-[#2a3142] bg-[#111827] px-2 text-xs text-white outline-none focus:border-emerald-400"
             />
             <button
               type="button"
               onClick={() => void sendMessage()}
               disabled={loading || !input.trim()}
-              className="h-9 rounded-md bg-cyan-600 px-3 text-xs font-semibold text-white disabled:opacity-50"
+              className="h-9 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white disabled:opacity-50"
             >
               Senden
             </button>
@@ -155,7 +166,7 @@ export function DashboardLiveChatWidget() {
       <button
         type="button"
         onClick={() => void onOpenClick()}
-        className="grid h-11 w-11 place-items-center rounded-full border border-[#2a3142] bg-[#111827] text-white shadow-lg"
+        className="grid h-12 w-12 place-items-center rounded-full border border-emerald-300/50 bg-emerald-600 text-white shadow-lg shadow-emerald-900/40 hover:bg-emerald-500 transition-colors"
         aria-label="Open live support chat"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -165,4 +176,3 @@ export function DashboardLiveChatWidget() {
     </div>
   );
 }
-

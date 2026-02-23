@@ -20,8 +20,9 @@ export async function GET(req: NextRequest) {
   const admin = createServiceClient();
   const session = await getSession(req, admin);
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const syncDiscord = req.nextUrl.searchParams.get("sync") === "1";
 
-  if (session.discord_thread_id) {
+  if (syncDiscord && session.discord_thread_id) {
     try {
       const discordMessages = await listDiscordThreadMessages(session.discord_thread_id, session.last_discord_message_id);
       const nonBot = discordMessages
