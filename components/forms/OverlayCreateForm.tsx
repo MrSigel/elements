@@ -13,7 +13,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function OverlayCreateForm() {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setError } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { name: "Main Overlay", width: 1920, height: 1080 }
   });
@@ -27,7 +27,13 @@ export function OverlayCreateForm() {
     if (res.ok) {
       reset();
       location.reload();
+      return;
     }
+    const body = await res.json().catch(() => null);
+    const msg = body?.error === "channel_not_found"
+      ? "Your account has no channel set up — please complete onboarding first."
+      : (body?.error ?? `Failed to create overlay (${res.status})`);
+    setError("root", { message: msg });
   }
 
   return (
@@ -51,6 +57,9 @@ export function OverlayCreateForm() {
           <input {...register("height")} type="number" className="w-full rounded bg-panelMuted px-3 py-2 text-sm" />
         </div>
       </div>
+      {errors.root && (
+        <p className="text-xs text-danger">{errors.root.message}</p>
+      )}
       <div className="flex items-center justify-between gap-4">
         <p className="text-xs text-subtle/50">Standard OBS BrowserSource: 1920 × 1080</p>
         <button disabled={isSubmitting} className="rounded bg-accent text-black px-4 py-2 text-sm font-semibold disabled:opacity-70 flex-shrink-0">
