@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/bot", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/onboarding"];
+const ADMIN_PREFIX = "/admin";
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+function isAdmin(pathname: string) {
+  return pathname === ADMIN_PREFIX || pathname.startsWith(`${ADMIN_PREFIX}/`);
 }
 
 async function hasValidToken(accessToken: string) {
@@ -23,7 +28,20 @@ async function hasValidToken(accessToken: string) {
 }
 
 export async function middleware(req: NextRequest) {
-  if (!isProtected(req.nextUrl.pathname)) {
+  const { pathname } = req.nextUrl;
+
+  // Admin route protection — check admin-token cookie presence
+  if (isAdmin(pathname)) {
+    const adminToken = req.cookies.get("admin-token")?.value;
+    if (!adminToken) {
+      const url = new URL("/auth", req.url);
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
+  if (!isProtected(pathname)) {
     return NextResponse.next();
   }
 
@@ -40,7 +58,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const url = new URL("/auth", req.url);
-  const nextTarget = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  const nextTarget = `${pathname}${req.nextUrl.search}`;
   url.searchParams.set("next", nextTarget);
   const res = NextResponse.redirect(url);
   if (accessToken) {
@@ -52,6 +70,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/admin/:path*",
     "/overlays/:path*",
     "/home/:path*",
     "/overlay-preview/:path*",

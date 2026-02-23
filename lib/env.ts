@@ -23,7 +23,9 @@ const schema = z.object({
   CRYPTAPI_WALLET_ETH: z.string().default(""),
   CRYPTAPI_WALLET_USDT_TRC20: z.string().default(""),
   CRYPTAPI_WALLET_LTC: z.string().default(""),
-  CRYPTAPI_WEBHOOK_SECRET: z.string().default("")
+  CRYPTAPI_WEBHOOK_SECRET: z.string().default(""),
+  ADMIN_EMAIL: z.string().default(""),
+  ADMIN_PASSWORD: z.string().default("")
 });
 
 export const env = schema.parse({
@@ -44,5 +46,7 @@ export const env = schema.parse({
   CRYPTAPI_WALLET_ETH: clean(process.env.CRYPTAPI_WALLET_ETH),
   CRYPTAPI_WALLET_USDT_TRC20: clean(process.env.CRYPTAPI_WALLET_USDT_TRC20),
   CRYPTAPI_WALLET_LTC: clean(process.env.CRYPTAPI_WALLET_LTC),
-  CRYPTAPI_WEBHOOK_SECRET: clean(process.env.CRYPTAPI_WEBHOOK_SECRET)
+  CRYPTAPI_WEBHOOK_SECRET: clean(process.env.CRYPTAPI_WEBHOOK_SECRET),
+  ADMIN_EMAIL: clean(process.env.ADMIN_EMAIL),
+  ADMIN_PASSWORD: clean(process.env.ADMIN_PASSWORD)
 });

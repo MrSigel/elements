@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { createAdminToken } from "@/lib/admin-auth";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -24,6 +25,22 @@ export async function POST(req: NextRequest) {
     parsedInput = loginSchema.parse(await req.json());
   } catch {
     return NextResponse.json({ error: "invalid_login_payload" }, { status: 400 });
+  }
+
+  // Admin login — check before Supabase auth
+  if (
+    env.ADMIN_EMAIL &&
+    env.ADMIN_PASSWORD &&
+    parsedInput.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase() &&
+    parsedInput.password === env.ADMIN_PASSWORD
+  ) {
+    const adminToken = createAdminToken();
+    const res = NextResponse.json({ ok: true, redirect: "/admin" });
+    res.cookies.set("admin-token", adminToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 60 * 60 * 8 // 8-hour session
+    });
+    return res;
   }
 
   if (

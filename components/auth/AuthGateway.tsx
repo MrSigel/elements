@@ -44,13 +44,13 @@ export function AuthGateway({ nextPath }: AuthGatewayProps) {
         })
       });
 
-      const payload = (await res.json().catch(() => ({}))) as ApiError;
+      const payload = (await res.json().catch(() => ({}))) as ApiError & { redirect?: string };
       if (!res.ok) {
         setError(payload.error ?? "Authentication failed.");
         return;
       }
 
-      window.location.assign(nextPath);
+      window.location.assign(payload.redirect ?? nextPath);
     } catch {
       setError("Network error. Please try again.");
     } finally {
