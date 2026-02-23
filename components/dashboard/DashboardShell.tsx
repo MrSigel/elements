@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { NAV_ITEMS } from "@/lib/constants";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BrandIcon } from "@/components/BrandIcon";
 import { DashboardLiveChatWidget } from "@/components/dashboard/DashboardLiveChatWidget";
 
@@ -118,8 +118,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   "/frontpages": <IcoFrontpages />,
   "/moderation": <IcoModeration />,
   "/shop": <IcoShop />,
-  "/logs": <IcoLogs />,
-  "/settings": <IcoSettings />
+  "/logs": <IcoLogs />
 };
 
 const TOOL_ITEMS = NAV_ITEMS.slice(0, 8);
@@ -134,14 +133,6 @@ export function DashboardShell({
 }) {
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
-  const [twitchLogin, setTwitchLogin] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/me")
-      .then((r) => r.json())
-      .then((d) => { if (d.twitchLogin) setTwitchLogin(d.twitchLogin); })
-      .catch(() => undefined);
-  }, []);
 
   async function logout() {
     setLoggingOut(true);
@@ -222,14 +213,6 @@ export function DashboardShell({
 
         {/* Sign out */}
         <div className="px-2 py-3 border-t border-white/5 flex-shrink-0">
-          {twitchLogin && (
-            <div className="flex items-center gap-2 px-3 py-2 mb-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="#9147ff" className="flex-shrink-0">
-                <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
-              </svg>
-              <span className="text-[11px] text-subtle/70 font-medium truncate">{twitchLogin}</span>
-            </div>
-          )}
           <button
             type="button"
             onClick={logout}
