@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
@@ -97,12 +98,42 @@ export async function GET(req: NextRequest) {
 
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
       type: "magiclink",
-      email,
-      options: { redirectTo: `${env.NEXT_PUBLIC_APP_URL}/onboarding` }
+      email
     });
 
-    if (linkErr) return NextResponse.json({ error: linkErr.message }, { status: 500 });
-    return NextResponse.redirect(link.properties.action_link);
+    if (linkErr || !link) return NextResponse.json({ error: linkErr?.message ?? "link_gen_failed" }, { status: 500 });
+
+    // Verify the OTP server-side so we can set httpOnly cookies — same pattern as /api/auth/login.
+    // This avoids the implicit-hash redirect, which the middleware would block before the browser
+    // client could process the #access_token fragment.
+    const anonClient = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const { data: otpData } = await anonClient.auth.verifyOtp({
+      email,
+      token: link.properties.email_otp,
+      type: "magiclink"
+    });
+
+    const COOKIE_OPTS = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      path: "/"
+    };
+
+    const res = NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/onboarding`);
+    if (otpData?.session) {
+      res.cookies.set("sb-access-token", otpData.session.access_token, {
+        ...COOKIE_OPTS,
+        maxAge: otpData.session.expires_in
+      });
+      res.cookies.set("sb-refresh-token", otpData.session.refresh_token, {
+        ...COOKIE_OPTS,
+        maxAge: 60 * 60 * 24 * 30
+      });
+    }
+    return res;
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "oauth_failed" }, { status: 500 });
   }
