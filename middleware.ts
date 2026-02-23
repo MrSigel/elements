@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/settings", "/onboarding"];
+const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/bot", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/settings", "/onboarding"];
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -56,6 +56,7 @@ export const config = {
     "/home/:path*",
     "/overlay-preview/:path*",
     "/widgets/:path*",
+    "/bot/:path*",
     "/website/:path*",
     "/frontpages/:path*",
     "/moderation/:path*",
