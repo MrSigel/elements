@@ -36,7 +36,7 @@ export default async function ChannelLayout({
       >
         Powered by <span style={{ color: "#f5c451" }}>Pulseframelabs</span>
       </footer>
-      <PublicHelpWidget />
+      <PublicHelpWidget channelSlug={channelSlug} />
     </div>
   );
 }
