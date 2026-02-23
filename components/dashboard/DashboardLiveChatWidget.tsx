@@ -21,9 +21,8 @@ export function DashboardLiveChatWidget() {
   const [error, setError] = useState("");
 
   function normalizeError(raw: string) {
-    if (raw.startsWith("discord_rate_limited")) return "Discord is temporarily rate-limited. Please try again in 10-30 seconds.";
-    if (raw.startsWith("discord_api_")) return "Discord API error. Please verify bot permissions and channel ID.";
-    if (raw === "discord_not_configured") return "Discord is not configured yet (missing token or channel ID).";
+    if (raw.startsWith("telegram_api_error")) return "Telegram API error. Please verify bot token and chat ID.";
+    if (raw === "telegram_not_configured") return "Telegram is not configured yet (missing bot token or chat ID).";
     return raw;
   }
 
@@ -46,8 +45,8 @@ export function DashboardLiveChatWidget() {
 
   useEffect(() => {
     if (!sessionId || !sessionToken) return;
-    const run = async (syncDiscord = false) => {
-      const url = `/api/livechat/messages?sessionId=${encodeURIComponent(sessionId)}&sessionToken=${encodeURIComponent(sessionToken)}${syncDiscord ? "&sync=1" : ""}`;
+    const run = async (syncTelegram = false) => {
+      const url = `/api/livechat/messages?sessionId=${encodeURIComponent(sessionId)}&sessionToken=${encodeURIComponent(sessionToken)}${syncTelegram ? "&sync=1" : ""}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) return;
       const data = (await res.json()) as { messages?: ChatMessage[] };
@@ -55,10 +54,10 @@ export function DashboardLiveChatWidget() {
     };
     void run(true);
     const dbTimer = window.setInterval(() => void run(false), 2500);
-    const discordSyncTimer = window.setInterval(() => void run(true), 60000);
+    const telegramSyncTimer = window.setInterval(() => void run(true), 7000);
     return () => {
       window.clearInterval(dbTimer);
-      window.clearInterval(discordSyncTimer);
+      window.clearInterval(telegramSyncTimer);
     };
   }, [sessionId, sessionToken]);
 
