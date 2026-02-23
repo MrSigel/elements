@@ -48,8 +48,9 @@ export async function getWebsiteConfig(slug: string): Promise<WebsiteConfig> {
 
 export async function setWebsiteConfig(slug: string, config: WebsiteConfig): Promise<void> {
   const admin = createServiceClient();
-  await admin
+  const { error } = await admin
     .from("channels")
     .update({ website_config: config })
     .eq("slug", slug);
+  if (error) throw new Error(error.message);
 }

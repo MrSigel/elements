@@ -16,6 +16,7 @@ export function WebsiteBuilder({ publicUrl, channelSlug, initialConfig }: Props)
   const [config, setConfig] = useState<WebsiteConfig>(initialConfig ?? { navBrand: "Pulseframelabs", deals: [], giveaways: [] });
   const [isSaving, setIsSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "ok" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function updateDeal(index: number, key: keyof WebsiteDeal, value: string) {
     setConfig((prev) => {
@@ -52,16 +53,21 @@ export function WebsiteBuilder({ publicUrl, channelSlug, initialConfig }: Props)
   async function saveConfig() {
     setIsSaving(true);
     setSaveState("idle");
+    setSaveError(null);
     try {
       const res = await fetch("/api/website/config", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ config })
       });
-      if (!res.ok) throw new Error("save_failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "save_failed");
+      }
       setSaveState("ok");
       setTimeout(() => setSaveState("idle"), 4000);
-    } catch {
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "save_failed");
       setSaveState("error");
     } finally {
       setIsSaving(false);
@@ -218,7 +224,7 @@ export function WebsiteBuilder({ publicUrl, channelSlug, initialConfig }: Props)
           </span>
         )}
         {saveState === "error" && (
-          <span className="text-xs text-danger">Save failed — try again</span>
+          <span className="text-xs text-danger">{saveError ?? "Save failed — try again"}</span>
         )}
       </div>
     </div>

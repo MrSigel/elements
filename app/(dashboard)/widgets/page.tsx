@@ -24,7 +24,7 @@ export default async function WidgetsPage() {
     : { data: [] as never[] };
   const overlayId = overlays?.[0]?.id;
   const { data: instances } = overlayId
-    ? await admin.from("widget_instances").select("id,kind,name,x,y,width,height,layer_index,is_enabled,widget_configs(config)").eq("overlay_id", overlayId).order("layer_index")
+    ? await admin.from("widget_instances").select("id,kind,name,x,y,width,height,layer_index,is_enabled,widget_configs(config),widget_tokens(public_token,revoked)").eq("overlay_id", overlayId).order("layer_index")
     : { data: [] as never[] };
 
   return (

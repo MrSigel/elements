@@ -21,7 +21,12 @@ export async function PUT(req: NextRequest) {
   const { data: channel } = await admin.from("channels").select("slug").eq("owner_id", auth.user.id).limit(1).maybeSingle();
   if (!channel?.slug) return NextResponse.json({ error: "channel_not_found" }, { status: 404 });
 
-  await setWebsiteConfig(channel.slug, body.config);
+  try {
+    await setWebsiteConfig(channel.slug, body.config);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown_error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
   return NextResponse.json({ ok: true, slug: channel.slug });
 }
 

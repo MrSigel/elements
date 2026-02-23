@@ -16,6 +16,7 @@ type WidgetRow = {
   layer_index: number;
   is_enabled: boolean;
   widget_configs?: { config: Record<string, unknown> }[];
+  widget_tokens?: { public_token: string; revoked: boolean }[] | { public_token: string; revoked: boolean } | null;
 };
 
 const tabs = [
