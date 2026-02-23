@@ -1,9 +1,14 @@
 import Link from "next/link";
+import { TwitchSuccessBanner } from "@/components/TwitchSuccessBanner";
 
-export default function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ twitch?: string }> }) {
+  const { twitch } = await searchParams;
+
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div className="w-full max-w-xl rounded-xl bg-panel p-8 border border-panelMuted space-y-6">
+        {twitch === "connected" && <TwitchSuccessBanner />}
+
         <div>
           <h1 className="text-3xl font-semibold mb-2">Get started</h1>
           <p className="text-subtle">
@@ -36,12 +41,13 @@ export default function OnboardingPage() {
         </ol>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link
+          {/* Plain <a> — Next.js Link would prefetch this as RSC, causing a CORS error with Twitch's OAuth redirect */}
+          <a
             href="/api/auth/twitch/start"
             className="inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-black font-semibold hover:bg-accent/90 transition-colors"
           >
             Connect Twitch
-          </Link>
+          </a>
           <Link
             href="/overlays"
             className="inline-flex items-center justify-center rounded-lg border border-panelMuted bg-panelMuted px-5 py-3 font-semibold hover:border-accent/40 transition-colors"

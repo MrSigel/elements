@@ -1,13 +1,15 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { OverlayCreateForm } from "@/components/forms/OverlayCreateForm";
 import { OverlayTable } from "@/components/forms/OverlayTable";
+import { TwitchSuccessBanner } from "@/components/TwitchSuccessBanner";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { getAccessibleChannelIds } from "@/lib/dashboard-scope";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function OverlaysPage() {
+export default async function OverlaysPage({ searchParams }: { searchParams: Promise<{ twitch?: string }> }) {
+  const { twitch } = await searchParams;
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) {
@@ -31,6 +33,7 @@ export default async function OverlaysPage() {
   return (
     <DashboardShell>
       <div className="space-y-6 p-6">
+        {twitch === "connected" && <TwitchSuccessBanner />}
         <div>
           <h1 className="text-2xl font-black text-text">Overlays</h1>
           <p className="text-sm text-subtle mt-1">Create and manage your OBS overlay sources. Each overlay gets a public BrowserSource URL you add to OBS.</p>
