@@ -1,4 +1,4 @@
-import net from "net";
+import tmi from "tmi.js";
 import { createServiceClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 
@@ -51,13 +51,13 @@ async function refreshTwitchTokenIfNeeded(userId: string) {
 }
 
 // Module-level singletons
-const activeBots = new Map<string, () => void>();
-const stoppedBots = new Set<string>(); // channels explicitly stopped — don't auto-reconnect
+const activeBots = new Map<string, tmi.Client>();
+const stoppedBots = new Set<string>();
 
 type HotWord = { id: string; phrase: string; cooldown_seconds: number; per_user_limit: number };
 
-/** General-purpose channel bot: handles all chat commands + hotword detection. */
-async function startChannelBot(channelLogin: string): Promise<() => void> {
+/** General-purpose channel bot using tmi.js (WebSocket-based, auto-reconnects). */
+async function startChannelBot(channelLogin: string): Promise<tmi.Client | null> {
   const admin = createServiceClient();
 
   const { data: channel } = await admin
@@ -65,7 +65,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
     .select("id,owner_id")
     .eq("slug", channelLogin)
     .maybeSingle();
-  if (!channel?.id || !channel?.owner_id) return () => undefined;
+  if (!channel?.id || !channel?.owner_id) return null;
   const channelId = channel.id as string;
 
   const { data: owner } = await admin
@@ -75,21 +75,11 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
     .maybeSingle();
   const login = (owner?.twitch_login as string | undefined)?.trim();
   const { accessToken } = await refreshTwitchTokenIfNeeded(channel.owner_id as string);
-  if (!login || !accessToken) return () => undefined;
+  if (!login || !accessToken) return null;
 
-  const socket = net.createConnection(6667, "irc.chat.twitch.tv");
-
-  socket.write(`PASS oauth:${accessToken}\r\n`);
-  socket.write(`NICK ${login}\r\n`);
-  socket.write(`JOIN #${channelLogin}\r\n`);
-
-  // Hotword cache (refreshed every 30s to pick up new hotwords without restarting)
+  // Hotword cache (refreshed every 30s)
   let cachedHotWords: HotWord[] | null = null;
   let hwCacheTime = 0;
-
-  function say(msg: string) {
-    socket.write(`PRIVMSG #${channelLogin} :${msg}\r\n`);
-  }
 
   async function getWidgetInfo(widgetType: string): Promise<{ id: string; overlay_id: string } | null> {
     const { data: overlays } = await admin
@@ -134,33 +124,30 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
     return ((data ?? []) as { points_delta: number }[]).reduce((sum, r) => sum + r.points_delta, 0);
   }
 
-  socket.on("error", (err) => {
-    console.error(`[bot:${channelLogin}] socket error: ${err.message}`);
+  const client = new tmi.Client({
+    identity: { username: login, password: `oauth:${accessToken}` },
+    channels: [channelLogin],
+    connection: { reconnect: true, secure: true, timeout: 20_000, reconnectDecay: 1.4, reconnectInterval: 1_000, maxReconnectAttempts: Infinity }
   });
 
-  socket.on("close", () => {
-    activeBots.delete(channelLogin);
-    // Auto-reconnect unless the bot was explicitly stopped
-    if (!stoppedBots.has(channelLogin)) {
-      setTimeout(() => { void ensureBotStarted(channelLogin); }, 5_000);
-    }
+  client.on("connected", () => {
+    console.log(`[bot:${channelLogin}] connected`);
   });
 
-  socket.on("data", async (chunk) => {
-    const text = chunk.toString("utf8");
+  client.on("disconnected", (reason) => {
+    console.log(`[bot:${channelLogin}] disconnected: ${reason}`);
+    // tmi.js reconnects automatically when reconnect: true
+    // If it gives up or we need to fully restart, handle below
+  });
 
-    if (text.includes("PING :tmi.twitch.tv")) {
-      socket.write("PONG :tmi.twitch.tv\r\n");
-      return;
-    }
+  client.on("message", async (_channel, tags, message, self) => {
+    if (self) return;
+    const username = (tags.username ?? "").toLowerCase().trim();
+    if (!username) return;
+    const text = message.trim();
 
-    const msgMatch = text.match(/:(.+)!.+ PRIVMSG #.+ :(.+)/);
-    if (!msgMatch) return;
-    const username = msgMatch[1].toLowerCase();
-    const message = msgMatch[2].trim();
-
-    // ── !guess [number] — bonushunt quick guessing ──────────────────────────
-    const guessMatch = message.match(/^!guess\s+([0-9]+(\.[0-9]+)?)/i);
+    // ── !guess [number] ──────────────────────────────────────────────────────
+    const guessMatch = text.match(/^!guess\s+([0-9]+(\.[0-9]+)?)/i);
     if (guessMatch) {
       const { data: snap } = await admin
         .from("widget_snapshots")
@@ -189,7 +176,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
     }
 
     // ── !slotrequest [slot name] ─────────────────────────────────────────────
-    const srMatch = message.match(/^!slotrequest\s+(.+)/i);
+    const srMatch = text.match(/^!slotrequest\s+(.+)/i);
     if (srMatch) {
       const slotName = srMatch[1].trim().slice(0, 100);
 
@@ -210,7 +197,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         .eq("action", "slot_request_submit")
         .maybeSingle();
       if (cooldown && new Date((cooldown as { cooldown_until: string }).cooldown_until).getTime() > now.getTime()) {
-        say(`@${username} you are still on cooldown for slot requests.`);
+        void client.say(channelLogin, `@${username} you are still on cooldown for slot requests.`);
         return;
       }
 
@@ -223,7 +210,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         .eq("action", `request:${channelId}`)
         .gte("window_start", windowStart);
       if ((count ?? 0) >= 3) {
-        say(`@${username} you have reached the rate limit for slot requests.`);
+        void client.say(channelLogin, `@${username} you have reached the rate limit for slot requests.`);
         return;
       }
 
@@ -252,12 +239,12 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
       const wi = await getWidgetInfo("slot_requests");
       if (wi) await refreshSnapshot("slot_requests", "request_add", { twitch_user_id: username, slot_name: slotName }, wi.overlay_id, wi.id);
 
-      say(`@${username} your slot request "${slotName}" has been added!`);
+      void client.say(channelLogin, `@${username} your slot request "${slotName}" has been added!`);
       return;
     }
 
-    // ── !join [team] — points battle ─────────────────────────────────────────
-    const joinMatch = message.match(/^!join\s+(\S+)/i);
+    // ── !join [team] ─────────────────────────────────────────────────────────
+    const joinMatch = text.match(/^!join\s+(\S+)/i);
     if (joinMatch) {
       const teamArg = joinMatch[1].trim();
 
@@ -270,7 +257,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         .limit(1)
         .maybeSingle();
       if (!pb) {
-        say(`@${username} there is no active battle right now.`);
+        void client.say(channelLogin, `@${username} there is no active battle right now.`);
         return;
       }
 
@@ -279,13 +266,13 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         t => t.toLowerCase() === teamArg.toLowerCase()
       );
       if (!normalizedTeam) {
-        say(`@${username} invalid team. Use "${pbData.team_a}" or "${pbData.team_b}".`);
+        void client.say(channelLogin, `@${username} invalid team. Use "${pbData.team_a}" or "${pbData.team_b}".`);
         return;
       }
 
       const points = await getUserPoints(username);
       if (points < pbData.entry_cost) {
-        say(`@${username} you need ${pbData.entry_cost} points to join (you have ${points}).`);
+        void client.say(channelLogin, `@${username} you need ${pbData.entry_cost} points to join (you have ${points}).`);
         return;
       }
 
@@ -311,19 +298,19 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         pbWi?.id
       );
 
-      say(`@${username} you joined team ${normalizedTeam}!`);
+      void client.say(channelLogin, `@${username} you joined team ${normalizedTeam}!`);
       return;
     }
 
-    // ── !points — check loyalty balance ──────────────────────────────────────
-    if (/^!points$/i.test(message)) {
+    // ── !points ───────────────────────────────────────────────────────────────
+    if (/^!points$/i.test(text)) {
       const points = await getUserPoints(username);
-      say(`@${username} you have ${points} points.`);
+      void client.say(channelLogin, `@${username} you have ${points} points.`);
       return;
     }
 
-    // ── !redeem [item name] — redeem a loyalty store item ────────────────────
-    const redeemMatch = message.match(/^!redeem\s+(.+)/i);
+    // ── !redeem [item name] ───────────────────────────────────────────────────
+    const redeemMatch = text.match(/^!redeem\s+(.+)/i);
     if (redeemMatch) {
       const itemName = redeemMatch[1].trim();
 
@@ -335,13 +322,13 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
       const allItems = (items ?? []) as { id: string; name: string; cost: number; cooldown_seconds: number }[];
       const item = allItems.find(i => i.name.toLowerCase() === itemName.toLowerCase());
       if (!item) {
-        say(`@${username} item "${itemName}" not found in the store.`);
+        void client.say(channelLogin, `@${username} item "${itemName}" not found in the store.`);
         return;
       }
 
       const points = await getUserPoints(username);
       if (points < item.cost) {
-        say(`@${username} you need ${item.cost} points to redeem "${item.name}" (you have ${points}).`);
+        void client.say(channelLogin, `@${username} you need ${item.cost} points to redeem "${item.name}" (you have ${points}).`);
         return;
       }
 
@@ -358,7 +345,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         if (lastRedeem) {
           const elapsed = (Date.now() - new Date((lastRedeem as { created_at: string }).created_at).getTime()) / 1000;
           if (elapsed < item.cooldown_seconds) {
-            say(`@${username} this item is on cooldown (${Math.ceil(item.cooldown_seconds - elapsed)}s remaining).`);
+            void client.say(channelLogin, `@${username} this item is on cooldown (${Math.ceil(item.cooldown_seconds - elapsed)}s remaining).`);
             return;
           }
         }
@@ -382,11 +369,11 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
       const wi = await getWidgetInfo("loyalty");
       if (wi) await refreshSnapshot("loyalty", "store_redeem", { twitch_user_id: username, name: item.name }, wi.overlay_id, wi.id);
 
-      say(`@${username} you redeemed "${item.name}"!`);
+      void client.say(channelLogin, `@${username} you redeemed "${item.name}"!`);
       return;
     }
 
-    // ── Hotword scanning — check every message against configured phrases ─────
+    // ── Hotword scanning ──────────────────────────────────────────────────────
     const nowMs = Date.now();
     if (!cachedHotWords || nowMs - hwCacheTime > 30_000) {
       const { data: hw } = await admin
@@ -398,9 +385,8 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
     }
 
     for (const hw of cachedHotWords) {
-      if (!message.toLowerCase().includes(hw.phrase.toLowerCase())) continue;
+      if (!text.toLowerCase().includes(hw.phrase.toLowerCase())) continue;
 
-      // Per-user limit check
       if (hw.per_user_limit > 0) {
         const { count: userCount } = await admin
           .from("hot_word_occurrences")
@@ -410,7 +396,6 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         if ((userCount ?? 0) >= hw.per_user_limit) continue;
       }
 
-      // Global cooldown check
       if (hw.cooldown_seconds > 0) {
         const since = new Date(nowMs - hw.cooldown_seconds * 1000).toISOString();
         const { count: recentCount } = await admin
@@ -426,29 +411,35 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
       const hwWi = await getWidgetInfo("hot_words");
       if (hwWi) await refreshSnapshot("hot_words", "hot_word_hit", { phrase: hw.phrase, twitch_user_id: username }, hwWi.overlay_id, hwWi.id);
 
-      break; // Only trigger one hotword per message
+      break;
     }
   });
 
-  return () => socket.end();
+  await client.connect();
+  return client;
 }
 
-/** Start the channel bot if not already running. Updates DB flag for persistence. */
+/** Start the channel bot if not already running. */
 export async function ensureBotStarted(channelLogin: string): Promise<void> {
-  stoppedBots.delete(channelLogin); // allow reconnect from now on
+  stoppedBots.delete(channelLogin);
   if (activeBots.has(channelLogin)) return;
-  const cleanup = await startChannelBot(channelLogin);
-  activeBots.set(channelLogin, cleanup);
-  // Mark bot as active in DB so it can be restarted on cold start
-  void createServiceClient().from("channels").update({ bot_active: true }).eq("slug", channelLogin);
+  try {
+    const client = await startChannelBot(channelLogin);
+    if (!client) return;
+    activeBots.set(channelLogin, client);
+    void createServiceClient().from("channels").update({ bot_active: true }).eq("slug", channelLogin);
+    console.log(`[bot:${channelLogin}] started`);
+  } catch (err) {
+    console.error(`[bot:${channelLogin}] failed to start:`, err);
+  }
 }
 
-/** Stop the channel bot for a channel. Updates DB flag. */
+/** Stop the channel bot for a channel. */
 export function stopBot(channelLogin: string): void {
-  stoppedBots.add(channelLogin); // prevent auto-reconnect
-  const cleanup = activeBots.get(channelLogin);
-  if (cleanup) {
-    cleanup();
+  stoppedBots.add(channelLogin);
+  const client = activeBots.get(channelLogin);
+  if (client) {
+    void client.disconnect();
     activeBots.delete(channelLogin);
     void createServiceClient().from("channels").update({ bot_active: false }).eq("slug", channelLogin);
   }
