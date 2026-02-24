@@ -151,10 +151,23 @@ export async function POST(req: NextRequest) {
 
     await applyWidgetSideEffects(admin, { channelId, overlayId: parsed.data.overlayId, widgetType: parsed.data.widgetType, eventType: parsed.data.eventType, payload: parsed.data.payload, actorId: auth.user.id });
 
+    // If no widgetInstanceId was provided, resolve it from the overlay's widget instances
+    let widgetInstanceId = parsed.data.widgetInstanceId ?? null;
+    if (!widgetInstanceId) {
+      const { data: wi } = await admin
+        .from("widget_instances")
+        .select("id")
+        .eq("overlay_id", parsed.data.overlayId)
+        .eq("kind", parsed.data.widgetType)
+        .limit(1)
+        .maybeSingle();
+      widgetInstanceId = wi?.id ?? null;
+    }
+
     const { data, error } = await admin.rpc("apply_widget_event", {
       p_channel_id: channelId,
       p_overlay_id: parsed.data.overlayId,
-      p_widget_instance_id: parsed.data.widgetInstanceId ?? null,
+      p_widget_instance_id: widgetInstanceId,
       p_widget_type: parsed.data.widgetType,
       p_event_type: parsed.data.eventType,
       p_payload: parsed.data.payload,
