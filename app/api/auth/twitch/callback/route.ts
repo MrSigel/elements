@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { createServerClient, createServiceClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 const TWITCH_LOGIN_ENABLED = true;
 
@@ -46,8 +46,14 @@ export async function GET(req: NextRequest) {
   const expected = cookieStore?.get?.("tw_state")?.value;
   if (!code || !state || state !== expected) return NextResponse.json({ error: "invalid_oauth_state" }, { status: 400 });
 
-  // Detect if a user is already logged in (e.g. email-registered user connecting Twitch from dashboard)
-  const alreadyLoggedIn = !!cookieStore?.get?.("sb-access-token")?.value;
+  // Detect if a user is already logged in by verifying the session token with Supabase
+  const sbToken = cookieStore?.get?.("sb-access-token")?.value;
+  const admin = createServiceClient();
+  let currentUserId: string | null = null;
+  if (sbToken) {
+    const { data: authData } = await admin.auth.getUser(sbToken);
+    currentUserId = authData.user?.id ?? null;
+  }
 
   const tokenRes = await fetch("https://id.twitch.tv/oauth2/token", {
     method: "POST",
@@ -69,7 +75,6 @@ export async function GET(req: NextRequest) {
   const me = ((await meRes.json()) as { data: TwitchUser[] }).data?.[0];
   if (!me) return NextResponse.json({ error: "twitch_user_fetch_failed" }, { status: 400 });
 
-  const admin = createServiceClient();
   const email = `${me.id}@twitch.local`;
   const expiresAt = token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : null;
 
@@ -85,18 +90,14 @@ export async function GET(req: NextRequest) {
   };
 
   try {
-    if (alreadyLoggedIn) {
+    if (currentUserId) {
       // ── CASE 1: Already logged-in user connecting their own Twitch ──────────
       // We update THEIR existing account instead of creating a new one.
-      const userClient = await createServerClient();
-      const { data: authData } = await userClient.auth.getUser();
-      if (!authData.user) {
-        return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/auth`);
-      }
-      const uid = authData.user.id;
+      const uid = currentUserId;
 
       // Update this user's Twitch credentials (overwrite placeholder values)
-      await admin.from("users").update(twitchFields).eq("id", uid);
+      const { error: updateErr } = await admin.from("users").update(twitchFields).eq("id", uid);
+      if (updateErr) throw new Error(updateErr.message);
 
       // Update their channel with real Twitch data (find by owner, update in-place)
       await admin.from("channels")
