@@ -120,7 +120,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
       p_widget_type: widgetType,
       p_event_type: eventType,
       p_payload: payload,
-      p_actor_id: "bot"
+      p_actor_id: null
     });
   }
 
