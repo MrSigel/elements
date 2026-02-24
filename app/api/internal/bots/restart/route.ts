@@ -2,38 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { ensureBotStarted } from "@/lib/twitch/bot";
 
-/**
- * GET /api/internal/bots/restart
- *
- * Called by Vercel Cron (every 5 minutes) to restart bots for channels that had
- * bot_active=true. This handles cold starts where the in-memory singleton is lost.
- *
- * Auth: Vercel Cron sends Authorization: Bearer {CRON_SECRET} automatically.
- * For manual calls, pass the same header.
- */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  // Require auth unless CRON_SECRET is not configured (dev mode)
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const admin = createServiceClient();
+
+  // Start all channels that either have bot_active=true OR have a valid
+  // Twitch access token (so the bot restarts even if bot_active was never set).
   const { data: channels } = await admin
     .from("channels")
-    .select("slug")
-    .eq("bot_active", true);
+    .select("slug, owner_id, bot_active, users!inner(twitch_access_token)")
+    .not("users.twitch_access_token", "is", null);
 
-  const results: { slug: string; ok: boolean }[] = [];
+  const results: { slug: string; ok: boolean; reason?: string }[] = [];
 
   for (const ch of channels ?? []) {
+    const slug = ch.slug as string;
     try {
-      await ensureBotStarted(ch.slug as string);
-      results.push({ slug: ch.slug as string, ok: true });
-    } catch {
-      results.push({ slug: ch.slug as string, ok: false });
+      await ensureBotStarted(slug);
+      // Mark active in DB so next restart knows to include it
+      await admin.from("channels").update({ bot_active: true }).eq("slug", slug);
+      results.push({ slug, ok: true });
+    } catch (err) {
+      results.push({ slug, ok: false, reason: String(err) });
     }
   }
 
