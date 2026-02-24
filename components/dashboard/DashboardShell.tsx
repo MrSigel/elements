@@ -40,9 +40,25 @@ export function DashboardShell({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-deep">
+    <div className="flex flex-col min-h-screen bg-bg-deep relative">
+      {/* ── Animated background orbs ──────────────────── */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div
+          className="absolute -top-[220px] -left-[180px] w-[650px] h-[650px] rounded-full bg-accent/[0.038] blur-[140px]"
+          style={{ animation: "dashOrb 22s ease-in-out infinite" }}
+        />
+        <div
+          className="absolute top-[38%] -right-[270px] w-[580px] h-[580px] rounded-full bg-sky-400/[0.025] blur-[130px]"
+          style={{ animation: "dashOrb 30s ease-in-out infinite reverse" }}
+        />
+        <div
+          className="absolute -bottom-[170px] left-[28%] w-[520px] h-[520px] rounded-full bg-accent/[0.025] blur-[120px]"
+          style={{ animation: "dashOrb 26s ease-in-out 8s infinite" }}
+        />
+      </div>
+
       {/* ── TOP NAVIGATION ──────────────────────────────── */}
-      <header className="h-14 sticky top-0 z-20 bg-panel border-b border-white/5 flex items-center px-5 gap-4 flex-shrink-0">
+      <header className="relative z-20 h-14 sticky top-0 bg-panel/95 backdrop-blur-md border-b border-white/[0.06] flex items-center px-5 gap-4 flex-shrink-0">
         {/* Brand */}
         <Link href={"/home" as never} className="flex items-center gap-2.5 flex-shrink-0 mr-2">
           <BrandIcon size="sm" />
@@ -52,8 +68,8 @@ export function DashboardShell({
           </div>
         </Link>
 
-        {/* Nav links */}
-        <nav className="flex-1 flex items-center gap-0.5 overflow-x-auto scrollbar-none min-w-0">
+        {/* Nav links — scrollbar hidden via .scrollbar-none */}
+        <nav className="scrollbar-none flex-1 flex items-center gap-0.5 overflow-x-auto min-w-0">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -86,12 +102,12 @@ export function DashboardShell({
       </header>
 
       {/* ── BODY ────────────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-auto bg-bg">{children}</main>
+      <div className="relative z-10 flex flex-1 overflow-hidden">
+        <main className="flex-1 overflow-auto">{children}</main>
 
         {/* Optional inspector panel */}
         {inspector && (
-          <aside className="w-[300px] border-l border-white/5 bg-panel overflow-auto flex-shrink-0">
+          <aside className="w-[300px] border-l border-white/[0.06] bg-panel/80 backdrop-blur-sm overflow-auto flex-shrink-0">
             {inspector}
           </aside>
         )}

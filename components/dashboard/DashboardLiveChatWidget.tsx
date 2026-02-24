@@ -168,7 +168,7 @@ export function DashboardLiveChatWidget({ userId }: { userId?: string }) {
                 Schreib uns — Antworten erscheinen hier live.
               </p>
             ) : (
-              messages.map((msg) => (
+              messages.filter((msg) => msg.body !== "Telegram bridge connected.").map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex flex-col gap-0.5 ${msg.sender === "viewer" ? "items-end" : "items-start"}`}

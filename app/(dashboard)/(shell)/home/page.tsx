@@ -20,6 +20,21 @@ function formatDate(iso: string) {
   }
 }
 
+function StatCard({ label, value, sub, accent, icon }: { label: string; value: string; sub: string; accent?: boolean; icon: React.ReactNode }) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border p-5 flex flex-col gap-3 ${accent ? "border-accent/20 bg-gradient-to-br from-accent/[0.07] to-panel" : "border-white/[0.07] bg-gradient-to-br from-panel to-bg-deep/60"}`}>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle/60">{label}</p>
+        <span className={`p-2 rounded-xl ${accent ? "bg-accent/15 text-accent" : "bg-white/[0.05] text-subtle/50"}`}>{icon}</span>
+      </div>
+      <div>
+        <p className={`text-3xl font-black ${accent ? "text-accent" : "text-text"}`}>{value}</p>
+        <p className="text-xs text-subtle/50 mt-1">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
 export default async function DashboardHomePage() {
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
@@ -32,7 +47,7 @@ export default async function DashboardHomePage() {
 
   if (!channelIds.length) {
     return (
-      <div className="p-6">
+      <div className="p-8 max-w-lg">
         <h1 className="text-2xl font-black text-text">Home</h1>
         <p className="text-sm text-subtle mt-1">No channel found yet. Create your first overlay to start collecting live statistics.</p>
       </div>
@@ -78,83 +93,115 @@ export default async function DashboardHomePage() {
   const publishedOverlays = (overlays ?? []).filter((o) => Boolean(o.is_published)).length;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
+      {/* Page header */}
       <div>
         <h1 className="text-2xl font-black text-text">Home</h1>
         <p className="text-sm text-subtle mt-1">Live operational stats from your real widget and channel data.</p>
       </div>
 
+      {/* Stat cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-panelMuted bg-panel p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-subtle/70">Overlays</p>
-          <p className="mt-2 text-2xl font-black text-text">{formatInt(overlaysCountRes.count ?? 0)}</p>
-          <p className="mt-1 text-xs text-subtle">{formatInt(publishedOverlays)} published</p>
-        </div>
-        <div className="rounded-xl border border-panelMuted bg-panel p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-subtle/70">Active Widgets</p>
-          <p className="mt-2 text-2xl font-black text-text">{formatInt(widgetsEnabledRes.count ?? 0)}</p>
-          <p className="mt-1 text-xs text-subtle">Enabled widget instances</p>
-        </div>
-        <div className="rounded-xl border border-panelMuted bg-panel p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-subtle/70">Widget Events (24h)</p>
-          <p className="mt-2 text-2xl font-black text-text">{formatInt(events24hRes.count ?? 0)}</p>
-          <p className="mt-1 text-xs text-subtle">From `widget_events`</p>
-        </div>
-        <div className="rounded-xl border border-panelMuted bg-panel p-4">
-          <p className="text-xs uppercase tracking-[0.14em] text-subtle/70">Open Slot Requests</p>
-          <p className="mt-2 text-2xl font-black text-text">{formatInt(openRequests)}</p>
-          <p className="mt-1 text-xs text-subtle">From `slot_requests`</p>
-        </div>
+        <StatCard
+          label="Overlays"
+          value={formatInt(overlaysCountRes.count ?? 0)}
+          sub={`${formatInt(publishedOverlays)} published`}
+          icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="5" width="13" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><rect x="3.5" y="2" width="9" height="2" rx="1" stroke="currentColor" strokeWidth="1.4"/></svg>}
+        />
+        <StatCard
+          label="Active Widgets"
+          value={formatInt(widgetsEnabledRes.count ?? 0)}
+          sub="Enabled instances"
+          icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.4"/></svg>}
+        />
+        <StatCard
+          label="Events (24h)"
+          value={formatInt(events24hRes.count ?? 0)}
+          sub="Widget events today"
+          accent
+          icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L10 6H15L11 9.5L12.5 14.5L8 11.5L3.5 14.5L5 9.5L1 6H6L8 1Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>}
+        />
+        <StatCard
+          label="Open Requests"
+          value={formatInt(openRequests)}
+          sub="Pending slot requests"
+          icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4.5H12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M4 8H12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M4 11.5H8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>}
+        />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-panelMuted bg-panel p-4">
-          <h2 className="text-sm font-semibold text-text">Financial Snapshot</h2>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-panelMuted bg-bg/40 p-3">
-              <p className="text-[11px] uppercase tracking-[0.12em] text-subtle/70">Total Deposits</p>
-              <p className="mt-1 text-lg font-black text-emerald-300">{formatCurrency(totalDeposits)}</p>
+      {/* Middle row: Financial + Top widgets */}
+      <section className="grid gap-4 lg:grid-cols-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-gradient-to-br from-panel to-bg-deep/60 p-5 space-y-3">
+          <h2 className="text-sm font-bold text-text">Financial Snapshot</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/[0.05] p-3">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-emerald-400/70 font-bold">Deposits</p>
+              <p className="mt-1.5 text-lg font-black text-emerald-300">{formatCurrency(totalDeposits)}</p>
             </div>
-            <div className="rounded-lg border border-panelMuted bg-bg/40 p-3">
-              <p className="text-[11px] uppercase tracking-[0.12em] text-subtle/70">Total Withdrawals</p>
-              <p className="mt-1 text-lg font-black text-rose-300">{formatCurrency(totalWithdrawals)}</p>
+            <div className="rounded-xl border border-rose-500/15 bg-rose-500/[0.05] p-3">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-rose-400/70 font-bold">Withdrawals</p>
+              <p className="mt-1.5 text-lg font-black text-rose-300">{formatCurrency(totalWithdrawals)}</p>
             </div>
           </div>
-          <div className="mt-3 rounded-lg border border-panelMuted bg-bg/40 p-3">
-            <p className="text-[11px] uppercase tracking-[0.12em] text-subtle/70">Points Granted</p>
-            <p className="mt-1 text-lg font-black text-accent">{formatInt(pointsGranted)}</p>
+          <div className="rounded-xl border border-accent/15 bg-accent/[0.06] p-3">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-accent/70 font-bold">Points Granted</p>
+            <p className="mt-1.5 text-lg font-black text-accent">{formatInt(pointsGranted)}</p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-panelMuted bg-panel p-4">
-          <h2 className="text-sm font-semibold text-text">Top Widget Activity (7d)</h2>
+        <div className="lg:col-span-2 rounded-2xl border border-white/[0.07] bg-gradient-to-br from-panel to-bg-deep/60 p-5">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-sm font-bold text-text">Top Widget Activity</h2>
+            <span className="text-[10px] text-subtle/40 uppercase tracking-wide">Last 7 days</span>
+          </div>
           {topWidgets.length === 0 ? (
-            <p className="mt-4 text-xs text-subtle">No widget activity in the last 7 days.</p>
+            <p className="text-xs text-subtle/40 italic">No widget activity in the last 7 days.</p>
           ) : (
-            <div className="mt-3 space-y-2">
-              {topWidgets.map(([type, count]) => (
-                <div key={type} className="flex items-center justify-between rounded-lg border border-panelMuted bg-bg/40 px-3 py-2">
-                  <span className="text-sm text-text">{type}</span>
-                  <span className="text-xs font-mono text-subtle">{formatInt(count)} events</span>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {topWidgets.map(([type, count], i) => {
+                const maxCount = topWidgets[0][1];
+                const pct = Math.round((count / maxCount) * 100);
+                return (
+                  <div key={type} className="flex items-center gap-3">
+                    <span className="text-[10px] text-subtle/30 w-4 text-right font-mono flex-shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs text-text capitalize truncate">{type.replace(/_/g, " ")}</span>
+                        <span className="text-[10px] font-mono text-subtle/50 ml-2 flex-shrink-0">{formatInt(count)}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-accent/70 to-accent/40" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       </section>
 
-      <section className="rounded-xl border border-panelMuted bg-panel p-4">
-        <h2 className="text-sm font-semibold text-text">Recent Widget Events</h2>
+      {/* Recent events */}
+      <section className="rounded-2xl border border-white/[0.07] bg-gradient-to-br from-panel to-bg-deep/60 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-text">Recent Widget Events</h2>
+          <span className="text-[10px] text-subtle/40 uppercase tracking-wide">Last 20</span>
+        </div>
         {!recentEvents?.length ? (
-          <p className="mt-3 text-xs text-subtle">No recent widget events.</p>
+          <p className="text-xs text-subtle/40 italic">No recent widget events.</p>
         ) : (
-          <div className="mt-3 space-y-2">
+          <div className="space-y-1.5">
             {recentEvents.map((e, idx) => (
-              <div key={`${e.created_at}-${idx}`} className="flex items-center justify-between rounded-lg border border-panelMuted bg-bg/40 px-3 py-2">
-                <div>
-                  <p className="text-sm text-text">{String(e.widget_type)} - {String(e.event_type)}</p>
-                  <p className="text-[11px] text-subtle">{formatDate(String(e.created_at))}</p>
+              <div key={`${e.created_at}-${idx}`} className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.035] transition-colors px-3 py-2.5">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent/50 flex-shrink-0" />
+                  <p className="text-xs text-text capitalize truncate">
+                    {String(e.widget_type).replace(/_/g, " ")}
+                    <span className="text-subtle/40 mx-1.5">·</span>
+                    <span className="text-subtle/70">{String(e.event_type).replace(/_/g, " ")}</span>
+                  </p>
                 </div>
+                <p className="text-[10px] text-subtle/35 flex-shrink-0 ml-3 font-mono">{formatDate(String(e.created_at))}</p>
               </div>
             ))}
           </div>

@@ -229,6 +229,25 @@ input, button, select, textarea {
   }
 }
 
+/* ── Scrollbar hide utility ────────────────────── */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+/* ── Dashboard animated background orbs ────────── */
+@keyframes dashOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(35px, -28px) scale(1.04); }
+  50%  { transform: translate(-28px, 38px) scale(0.96); }
+  75%  { transform: translate(22px,  12px) scale(1.02); }
+}
+
 .frame-shell {
   position: relative;
   isolation: isolate;
