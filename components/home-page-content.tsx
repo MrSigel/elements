@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { BrandIcon } from "@/components/BrandIcon";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { WidgetDemo } from "@/components/overlay/WidgetDemo";
 
 interface HomePageContentProps {
   isLoggedIn: boolean;
@@ -16,14 +16,14 @@ interface HomePageContentProps {
 }
 
 const WIDGETS = [
-  { src: "/overlay/bonushunt.webp", label: "Bonus Hunt Tracker" },
-  { src: "/overlay/slot_vs_slot_battles.png", label: "Slot vs Slot Battles" },
-  { src: "/overlay/viewer_tournaments.webp", label: "Viewer Tournaments" },
-  { src: "/overlay/quick_fuesses_twitch.webp", label: "Quick Guessing" },
-  { src: "/overlay/slot_requests.png", label: "Slot Requests" },
-  { src: "/overlay/slot_requests_finish.webp", label: "Request Results" },
-  { src: "/overlay/current_playing.webp", label: "Now Playing" },
-  { src: "/overlay/hot_words.png", label: "Hot Words Scanner" },
+  { kind: "bonushunt", label: "Bonus Hunt Tracker" },
+  { kind: "slot_battle", label: "Slot vs Slot Battles" },
+  { kind: "tournament", label: "Viewer Tournaments" },
+  { kind: "quick_guessing", label: "Quick Guessing" },
+  { kind: "slot_requests", label: "Slot Requests" },
+  { kind: "points_battle", label: "Points Battle" },
+  { kind: "current_playing", label: "Now Playing" },
+  { kind: "hot_words", label: "Hot Words Scanner" },
 ];
 
 const MARQUEE_ITEMS = [
@@ -64,7 +64,7 @@ const FAQ_ITEMS = [
   },
 ];
 
-function Widget3DCard({ src, label, index }: { src: string; label: string; index: number }) {
+function Widget3DCard({ kind, label, index }: { kind: string; label: string; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -97,16 +97,8 @@ function Widget3DCard({ src, label, index }: { src: string; label: string; index
     >
       <div className="absolute inset-0 z-10 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <div className="absolute inset-0 z-10 rounded-xl ring-0 ring-accent/0 group-hover:ring-1 group-hover:ring-accent/50 transition-all duration-300 pointer-events-none" />
-      <Image
-        src={src}
-        alt={label}
-        width={700}
-        height={420}
-        className="w-full h-auto object-cover"
-        priority={index < 4}
-      />
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-deep via-bg-deep/70 to-transparent px-3 py-3 z-20">
-        <p className="text-sm font-bold text-accent tracking-wide">{label}</p>
+      <div className="h-[280px]">
+        <WidgetDemo kind={kind} name={label} />
       </div>
     </motion.div>
   );
@@ -114,9 +106,9 @@ function Widget3DCard({ src, label, index }: { src: string; label: string; index
 
 function HeroStack() {
   const CARDS = [
-    { src: "/overlay/bonushunt.webp", rot: "-3deg", delay: 0, offset: "0px" },
-    { src: "/overlay/slot_vs_slot_battles.png", rot: "2.5deg", delay: 0.5, offset: "22px" },
-    { src: "/overlay/viewer_tournaments.webp", rot: "-5deg", delay: 1, offset: "44px" },
+    { kind: "bonushunt", name: "Bonus Hunt", rot: "-3deg", delay: 0, offset: "0px" },
+    { kind: "slot_battle", name: "Slot vs Slot Battles", rot: "2.5deg", delay: 0.5, offset: "22px" },
+    { kind: "tournament", name: "Viewer Tournaments", rot: "-5deg", delay: 1, offset: "44px" },
   ];
 
   return (
@@ -124,7 +116,7 @@ function HeroStack() {
       {CARDS.map((card, i) => (
         <motion.div
           key={i}
-          className="absolute left-0 right-0 mx-auto max-w-[480px] rounded-2xl overflow-hidden border border-accent/30 shadow-2xl"
+          className="absolute left-0 right-0 mx-auto max-w-[480px] h-[260px] md:h-[300px] rounded-2xl overflow-hidden border border-accent/30 shadow-2xl"
           style={{
             rotate: card.rot,
             zIndex: CARDS.length - i,
@@ -143,15 +135,7 @@ function HeroStack() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
         >
-          <Image
-            src={card.src}
-            alt="Widget preview"
-            width={700}
-            height={420}
-            className="w-full h-auto object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          <WidgetDemo kind={card.kind} name={card.name} />
         </motion.div>
       ))}
     </div>
@@ -346,7 +330,7 @@ export function HomePageContent({ isLoggedIn, features, workflow }: HomePageCont
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style={{ perspective: "1200px" }}>
             {WIDGETS.map((w, i) => (
-              <Widget3DCard key={w.src} src={w.src} label={w.label} index={i} />
+              <Widget3DCard key={w.kind} kind={w.kind} label={w.label} index={i} />
             ))}
           </div>
         </section>

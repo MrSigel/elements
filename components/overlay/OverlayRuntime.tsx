@@ -72,7 +72,7 @@ function ListRow({
   );
 }
 
-function WidgetCard({ kind, state }: { kind: string; state: Record<string, unknown> }) {
+export function WidgetCard({ kind, state }: { kind: string; state: Record<string, unknown> }) {
   if (kind === "wager_bar") {
     const value = asNumber(state.value, 0);
     const pct = Math.max(0, Math.min(100, value));
