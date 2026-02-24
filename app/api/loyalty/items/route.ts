@@ -17,13 +17,15 @@ export async function GET() {
 
   const admin = createServiceClient();
   const { data, error } = await admin
-    .from("loyalty_items")
-    .select("id,name,cost,cooldown_secs,created_at")
+    .from("store_items")
+    .select("id,name,cost,cooldown_seconds,created_at")
     .eq("channel_id", channelId)
+    .eq("is_active", true)
     .order("created_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ items: data ?? [] });
+  const items = (data ?? []).map((r) => ({ id: r.id, name: r.name, cost: r.cost, cooldown_secs: r.cooldown_seconds, created_at: r.created_at }));
+  return NextResponse.json({ items });
 }
 
 export async function POST(req: NextRequest) {
@@ -38,15 +40,16 @@ export async function POST(req: NextRequest) {
   const name = (body.name ?? "").trim();
   if (!name) return NextResponse.json({ error: "name_required" }, { status: 400 });
   const cost = Math.max(1, Math.floor(Number(body.cost) || 100));
-  const cooldown_secs = Math.max(0, Math.floor(Number(body.cooldown_secs) || 0));
+  const cooldown_seconds = Math.max(0, Math.floor(Number(body.cooldown_secs) || 0));
 
   const admin = createServiceClient();
   const { data, error } = await admin
-    .from("loyalty_items")
-    .insert({ channel_id: channelId, name, cost, cooldown_secs })
-    .select("id,name,cost,cooldown_secs,created_at")
+    .from("store_items")
+    .insert({ channel_id: channelId, name, cost, cooldown_seconds, is_active: true })
+    .select("id,name,cost,cooldown_seconds,created_at")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ item: data });
+  const item = { id: data.id, name: data.name, cost: data.cost, cooldown_secs: data.cooldown_seconds, created_at: data.created_at };
+  return NextResponse.json({ item });
 }
