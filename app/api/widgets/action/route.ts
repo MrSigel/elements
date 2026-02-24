@@ -70,7 +70,13 @@ async function applyWidgetSideEffects(admin: ReturnType<typeof createServiceClie
     const { data: srCh } = await admin.from("channels").select("slug").eq("id", input.channelId).maybeSingle();
     if (srCh?.slug) await ensureBotStarted(srCh.slug);
     if (input.eventType === "request_add") {
-      await admin.from("slot_requests").insert({ channel_id: input.channelId, twitch_user_id: String(input.payload.twitch_user_id ?? "anon"), slot_name: String(input.payload.slot_name ?? "Unknown") });
+      await admin.from("slot_requests").upsert(
+        { channel_id: input.channelId, twitch_user_id: String(input.payload.twitch_user_id ?? "anon"), slot_name: String(input.payload.slot_name ?? "Unknown"), status: "open" },
+        { onConflict: "channel_id,twitch_user_id,slot_name" }
+      );
+    }
+    if (input.eventType === "request_clear") {
+      await admin.from("slot_requests").update({ status: "closed" }).eq("channel_id", input.channelId).eq("status", "open");
     }
     if (input.eventType === "raffle_draw") {
       const { data: open } = await admin.from("slot_requests").select("id").eq("channel_id", input.channelId).eq("status", "open");

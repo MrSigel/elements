@@ -224,7 +224,10 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
 
       const { error } = await admin
         .from("slot_requests")
-        .insert({ channel_id: channelId, twitch_user_id: username, slot_name: slotName });
+        .upsert(
+          { channel_id: channelId, twitch_user_id: username, slot_name: slotName, status: "open" },
+          { onConflict: "channel_id,twitch_user_id,slot_name" }
+        );
       if (error) return;
 
       const cooldownUntil = new Date(now.getTime() + 30_000).toISOString();
