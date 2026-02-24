@@ -1,31 +1,17 @@
 /**
  * Next.js Instrumentation Hook — runs once when the server process starts.
- * Restarts all bots whose bot_active=true in the DB, so the bot survives
- * deploys and server restarts without waiting for a cron job.
+ * We cannot import bot.ts here (it uses the Node.js `net` built-in which
+ * webpack can't resolve at build time). Instead we call our own restart
+ * endpoint after a short delay to give the HTTP server time to bind.
  */
 export async function register() {
-  // Only run in the Node.js runtime (not in the Edge runtime)
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
-  try {
-    const { createServiceClient } = await import("@/lib/supabase/server");
-    const { ensureBotStarted } = await import("@/lib/twitch/bot");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) return;
 
-    const admin = createServiceClient();
-    const { data: channels } = await admin
-      .from("channels")
-      .select("slug")
-      .eq("bot_active", true);
-
-    for (const ch of (channels ?? [])) {
-      try {
-        await ensureBotStarted(ch.slug as string);
-        console.log(`[instrumentation] bot started for: ${String(ch.slug)}`);
-      } catch (err) {
-        console.error(`[instrumentation] failed to start bot for ${String(ch.slug)}:`, err);
-      }
-    }
-  } catch (err) {
-    console.error("[instrumentation] error during bot startup:", err);
-  }
+  // Wait 8 seconds for the HTTP server to be ready, then trigger bot restart.
+  setTimeout(() => {
+    void fetch(`${appUrl}/api/internal/bots/restart`).catch(() => {/* ignore */});
+  }, 8_000);
 }
