@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { NAV_ITEMS } from "@/lib/constants";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrandIcon } from "@/components/BrandIcon";
 import { DashboardLiveChatWidget } from "@/components/dashboard/DashboardLiveChatWidget";
 
@@ -42,7 +42,15 @@ export function DashboardShell({
   isTwitchConnected?: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("twitch") === "connected") {
+      router.refresh();
+    }
+  }, [searchParams, router]);
 
   async function logout() {
     setLoggingOut(true);

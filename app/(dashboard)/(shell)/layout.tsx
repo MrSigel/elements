@@ -1,6 +1,8 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
