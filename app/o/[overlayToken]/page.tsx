@@ -20,10 +20,13 @@ export default async function OverlayPage({ params }: { params: Promise<{ overla
 
   const [{ data: snapshots }, { data: widgets }] = await Promise.all([
     admin.from("widget_snapshots").select("widget_instance_id,widget_type,state").eq("overlay_id", token.overlay_id),
-    admin.from("widget_instances").select("id,x,y,width,height,kind,name,is_enabled").eq("overlay_id", token.overlay_id).eq("is_enabled", true).order("layer_index")
+    admin.from("widget_instances").select("id,x,y,width,height,kind,name,is_enabled,widget_configs(config)").eq("overlay_id", token.overlay_id).eq("is_enabled", true).order("layer_index")
   ]);
 
-  const layout = (widgets ?? []).map((w) => ({ id: w.id, x: Number(w.x), y: Number(w.y), width: Number(w.width), height: Number(w.height), kind: w.kind, name: w.name }));
+  const layout = (widgets ?? []).map((w) => {
+    const cfg = Array.isArray(w.widget_configs) ? w.widget_configs[0] : w.widget_configs;
+    return { id: w.id, x: Number(w.x), y: Number(w.y), width: Number(w.width), height: Number(w.height), kind: w.kind, name: w.name, config: (cfg as { config?: Record<string, unknown> } | null)?.config ?? {} };
+  });
 
   return <OverlayRuntime overlayId={token.overlay_id} initialSnapshots={snapshots ?? []} layout={layout} />;
 }

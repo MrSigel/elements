@@ -155,8 +155,8 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         .eq("channel_id", channelId)
         .eq("widget_type", "quick_guessing")
         .maybeSingle();
-      const state = snap?.state as { status?: string } | null;
-      if (state?.status !== "open") return;
+      const state = snap?.state as { open?: boolean } | null;
+      if (!state?.open) return;
 
       const { data: hunt } = await admin
         .from("bonushunts")
@@ -286,11 +286,13 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
         { onConflict: "points_battle_id,twitch_user_id" }
       );
 
+      const pbWi = await getWidgetInfo("points_battle");
       await refreshSnapshot(
         "points_battle",
         "points_battle_join",
         { twitch_user_id: username, team: normalizedTeam, points: pbData.entry_cost },
-        pbData.overlay_id
+        pbData.overlay_id,
+        pbWi?.id
       );
 
       say(`@${username} you joined team ${normalizedTeam}!`);
