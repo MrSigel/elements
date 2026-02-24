@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
 const TWITCH_LOGIN_ENABLED = true;
 
@@ -46,8 +46,7 @@ export async function GET(req: NextRequest) {
   const expected = cookieStore?.get?.("tw_state")?.value;
   if (!code || !state || state !== expected) return NextResponse.json({ error: "invalid_oauth_state" }, { status: 400 });
 
-  // If user is already authenticated (e.g. email/password user connecting Twitch from onboarding),
-  // redirect to the dashboard after connecting instead of back to onboarding.
+  // Detect if a user is already logged in (e.g. email-registered user connecting Twitch from dashboard)
   const alreadyLoggedIn = !!cookieStore?.get?.("sb-access-token")?.value;
 
   const tokenRes = await fetch("https://id.twitch.tv/oauth2/token", {
@@ -74,20 +73,44 @@ export async function GET(req: NextRequest) {
   const email = `${me.id}@twitch.local`;
   const expiresAt = token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : null;
 
+  const twitchFields = {
+    twitch_user_id: me.id,
+    twitch_login: me.login,
+    twitch_display_name: me.display_name,
+    avatar_url: me.profile_image_url,
+    twitch_access_token: token.access_token,
+    twitch_refresh_token: token.refresh_token ?? null,
+    twitch_token_expires_at: expiresAt,
+    twitch_token_scope: token.scope ?? null
+  };
+
   try {
+    if (alreadyLoggedIn) {
+      // ── CASE 1: Already logged-in user connecting their own Twitch ──────────
+      // We update THEIR existing account instead of creating a new one.
+      const userClient = await createServerClient();
+      const { data: authData } = await userClient.auth.getUser();
+      if (!authData.user) {
+        return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/auth`);
+      }
+      const uid = authData.user.id;
+
+      // Update this user's Twitch credentials (overwrite placeholder values)
+      await admin.from("users").update(twitchFields).eq("id", uid);
+
+      // Update their channel with real Twitch data (find by owner, update in-place)
+      await admin.from("channels")
+        .update({ twitch_channel_id: me.id, slug: me.login, title: `${me.display_name}'s Channel` })
+        .eq("owner_id", uid);
+
+      // No new session needed — existing cookies remain valid
+      return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/home?twitch=connected`);
+    }
+
+    // ── CASE 2: New or returning Twitch-primary user (no existing session) ────
     const uid = await resolveOrCreateAuthUser(admin, email, me);
 
-    await admin.from("users").upsert({
-      id: uid,
-      twitch_user_id: me.id,
-      twitch_login: me.login,
-      twitch_display_name: me.display_name,
-      avatar_url: me.profile_image_url,
-      twitch_access_token: token.access_token,
-      twitch_refresh_token: token.refresh_token ?? null,
-      twitch_token_expires_at: expiresAt,
-      twitch_token_scope: token.scope ?? null
-    }, { onConflict: "id" });
+    await admin.from("users").upsert({ id: uid, ...twitchFields }, { onConflict: "id" });
 
     const { data: channel } = await admin.from("channels").upsert({
       owner_id: uid,
@@ -107,9 +130,6 @@ export async function GET(req: NextRequest) {
 
     if (linkErr || !link) return NextResponse.json({ error: linkErr?.message ?? "link_gen_failed" }, { status: 500 });
 
-    // Verify the OTP server-side so we can set httpOnly cookies — same pattern as /api/auth/login.
-    // This avoids the implicit-hash redirect, which the middleware would block before the browser
-    // client could process the #access_token fragment.
     const anonClient = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
       auth: { persistSession: false, autoRefreshToken: false }
     });
@@ -126,8 +146,7 @@ export async function GET(req: NextRequest) {
       path: "/"
     };
 
-    const destination = alreadyLoggedIn ? "/home?twitch=connected" : "/onboarding?twitch=connected";
-    const res = NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}${destination}`);
+    const res = NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/onboarding?twitch=connected`);
     if (otpData?.session) {
       res.cookies.set("sb-access-token", otpData.session.access_token, {
         ...COOKIE_OPTS,

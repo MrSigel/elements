@@ -18,14 +18,28 @@ function IcoSignOut() {
   );
 }
 
+function IcoTwitch() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
+    </svg>
+  );
+}
+
 export function DashboardShell({
   children,
   inspector,
-  userId
+  userId,
+  twitchLogin,
+  twitchDisplayName,
+  isTwitchConnected
 }: {
   children: React.ReactNode;
   inspector?: React.ReactNode;
   userId?: string;
+  twitchLogin?: string | null;
+  twitchDisplayName?: string | null;
+  isTwitchConnected?: boolean;
 }) {
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -89,16 +103,37 @@ export function DashboardShell({
           })}
         </nav>
 
-        {/* Sign out */}
-        <button
-          type="button"
-          onClick={logout}
-          disabled={loggingOut}
-          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-subtle/60 hover:text-danger hover:bg-danger/5 transition-all duration-150 disabled:opacity-50 border border-transparent hover:border-danger/10"
-        >
-          <IcoSignOut />
-          <span className="hidden sm:inline">{loggingOut ? "Signing out…" : "Sign Out"}</span>
-        </button>
+        {/* ── Right side actions ─── */}
+        <div className="flex-shrink-0 flex items-center gap-2">
+          {/* Twitch connect / status */}
+          {isTwitchConnected ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#9147ff]/30 bg-[#9147ff]/10 text-[#bf94ff]">
+              <IcoTwitch />
+              <span className="hidden sm:inline truncate max-w-[100px]">
+                {twitchDisplayName ?? twitchLogin}
+              </span>
+            </div>
+          ) : (
+            <a
+              href="/api/auth/twitch/start"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#9147ff]/40 bg-[#9147ff]/10 text-[#bf94ff] hover:bg-[#9147ff]/20 hover:border-[#9147ff]/60 transition-all duration-150"
+            >
+              <IcoTwitch />
+              <span className="hidden sm:inline">Connect Twitch</span>
+            </a>
+          )}
+
+          {/* Sign out */}
+          <button
+            type="button"
+            onClick={logout}
+            disabled={loggingOut}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-subtle/60 hover:text-danger hover:bg-danger/5 transition-all duration-150 disabled:opacity-50 border border-transparent hover:border-danger/10"
+          >
+            <IcoSignOut />
+            <span className="hidden sm:inline">{loggingOut ? "Signing out…" : "Sign Out"}</span>
+          </button>
+        </div>
       </header>
 
       {/* ── BODY ────────────────────────────────────────── */}
