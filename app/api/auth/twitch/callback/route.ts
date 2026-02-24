@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/server";
+import { ensureBotStarted } from "@/lib/twitch/bot";
 
 const TWITCH_LOGIN_ENABLED = true;
 
@@ -103,6 +104,9 @@ export async function GET(req: NextRequest) {
       await admin.from("channels")
         .update({ twitch_channel_id: me.id, slug: me.login, title: `${me.display_name}'s Channel` })
         .eq("owner_id", uid);
+
+      // Start the bot immediately so commands work right away
+      void ensureBotStarted(me.login);
 
       // No new session needed — existing cookies remain valid
       return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/home?twitch=connected`);
