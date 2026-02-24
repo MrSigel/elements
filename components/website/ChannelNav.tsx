@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandIcon } from "@/components/BrandIcon";
+import type { SiteTheme } from "@/lib/website-config";
 
-export function ChannelNav({ channelSlug, brand }: { channelSlug: string; brand: string }) {
+export function ChannelNav({ channelSlug, brand, theme: t }: { channelSlug: string; brand: string; theme: SiteTheme }) {
   const pathname = usePathname();
 
   const links = [
@@ -15,14 +16,15 @@ export function ChannelNav({ channelSlug, brand }: { channelSlug: string; brand:
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-xl"
-      style={{ background: "rgba(10,13,20,0.85)" }}
+    <header
+      className="sticky top-0 z-50 border-b backdrop-blur-xl"
+      style={{ background: t.headerBg, borderColor: t.headerBorder }}
     >
       <div className="mx-auto max-w-6xl flex items-center justify-between gap-4 px-6 py-3">
         {/* Brand */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <BrandIcon size="sm" />
-          <p className="font-black text-sm uppercase tracking-widest text-white truncate max-w-[180px]">
+          <p className="font-black text-sm uppercase tracking-widest truncate max-w-[180px]" style={{ color: t.navActiveText }}>
             {brand}
           </p>
         </div>
@@ -35,16 +37,16 @@ export function ChannelNav({ channelSlug, brand }: { channelSlug: string; brand:
               <Link
                 key={link.href}
                 href={link.href as never}
-                className={`relative px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
-                  isActive
-                    ? "text-[#f5c451] bg-[#f5c451]/10"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
-                }`}
+                className="relative px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150"
+                style={{
+                  color: isActive ? t.navActiveText : t.navIdleText,
+                  background: isActive ? t.navActiveBg : "transparent"
+                }}
               >
                 {isActive && (
                   <span
                     className="absolute bottom-0 left-3 right-3 h-px rounded-full"
-                    style={{ background: "#f5c451" }}
+                    style={{ background: t.navActiveBar }}
                   />
                 )}
                 {link.label}

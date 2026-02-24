@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
-import { getWebsiteConfig } from "@/lib/website-config";
+import { getWebsiteConfig, getTheme } from "@/lib/website-config";
 import { ChannelNav } from "@/components/website/ChannelNav";
 
 export const dynamic = "force-dynamic";
@@ -20,20 +20,21 @@ export default async function ChannelLayout({
 
   const cfg = await getWebsiteConfig(channelSlug);
   const brand = cfg.navBrand?.trim() || channelSlug;
+  const t = getTheme(cfg.template);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#080c14", color: "#e5edf5" }}>
-      <ChannelNav channelSlug={channelSlug} brand={brand} />
+    <div className="min-h-screen flex flex-col" style={{ background: t.pageBg, color: t.pageText }}>
+      <ChannelNav channelSlug={channelSlug} brand={brand} theme={t} />
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">{children}</main>
       <footer
         className="px-6 py-4 text-center text-xs border-t"
         style={{
-          borderColor: "rgba(255,255,255,0.06)",
-          color: "rgba(255,255,255,0.25)",
-          background: "rgba(0,0,0,0.25)"
+          borderColor: t.footerBorder,
+          color: t.footerText,
+          background: t.footerBg
         }}
       >
-        Powered by <span style={{ color: "#f5c451" }}>Pulseframelabs</span>
+        Powered by <span style={{ color: t.footerBrand }}>Pulseframelabs</span>
       </footer>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { WebsiteConfig, WebsiteDeal, WebsiteGiveaway } from "@/lib/website-config";
+import type { WebsiteConfig, WebsiteDeal, WebsiteGiveaway, WebsiteTemplate } from "@/lib/website-config";
 
 type Props = {
   publicUrl?: string;
@@ -12,8 +12,13 @@ type Props = {
 const EMPTY_DEAL: WebsiteDeal = { casinoName: "", casinoUrl: "", wager: "", bonusCode: "", actionAfterSignup: "" };
 const EMPTY_GIVEAWAY: WebsiteGiveaway = { title: "", description: "", endAt: "" };
 
+const TEMPLATES: { id: WebsiteTemplate; label: string; desc: string }[] = [
+  { id: "dark", label: "Dark", desc: "Deep dark background with gold accents" },
+  { id: "lite", label: "Lite", desc: "Clean white background with blue accents" }
+];
+
 export function WebsiteBuilder({ publicUrl, channelSlug, initialConfig }: Props) {
-  const [config, setConfig] = useState<WebsiteConfig>(initialConfig ?? { navBrand: "Pulseframelabs", deals: [], giveaways: [] });
+  const [config, setConfig] = useState<WebsiteConfig>(initialConfig ?? { navBrand: "Pulseframelabs", deals: [], giveaways: [], template: "dark" });
   const [isSaving, setIsSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "ok" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -74,6 +79,8 @@ export function WebsiteBuilder({ publicUrl, channelSlug, initialConfig }: Props)
     }
   }
 
+  const activeTemplate = config.template ?? "dark";
+
   return (
     <div className="space-y-6">
       {/* Public URL banner */}
@@ -95,6 +102,84 @@ export function WebsiteBuilder({ publicUrl, channelSlug, initialConfig }: Props)
           </a>
         </div>
       )}
+
+      {/* Template selector */}
+      <div className="rounded-xl border border-panelMuted bg-panel p-4 space-y-3">
+        <div>
+          <p className="text-sm font-semibold text-text">Template</p>
+          <p className="text-xs text-subtle mt-0.5">Choose the visual style for your public landing page. You can switch at any time.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {TEMPLATES.map((t) => {
+            const isActive = activeTemplate === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setConfig((prev) => ({ ...prev, template: t.id }))}
+                className={`rounded-xl border-2 p-3 text-left transition-all ${
+                  isActive
+                    ? "border-accent bg-accent/5"
+                    : "border-panelMuted bg-panelMuted/20 hover:border-accent/40"
+                }`}
+              >
+                {/* Mini preview */}
+                {t.id === "dark" ? (
+                  <div className="w-full h-20 rounded-lg overflow-hidden mb-2.5" style={{ background: "#080c14", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="h-5 flex items-center px-2.5 gap-1.5" style={{ background: "rgba(10,13,20,0.9)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div className="w-10 h-1.5 rounded-full" style={{ background: "#f5c451" }} />
+                      <div className="ml-auto flex gap-1">
+                        <div className="w-5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
+                        <div className="w-5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
+                      </div>
+                    </div>
+                    <div className="px-2.5 pt-2 space-y-1.5">
+                      <div className="flex gap-1 items-center">
+                        <div className="w-0.5 h-3 rounded-full flex-shrink-0" style={{ background: "linear-gradient(180deg,#f5c451,#b22234)" }} />
+                        <div className="w-14 h-1.5 rounded-full" style={{ background: "#f5c451" }} />
+                      </div>
+                      <div className="w-full h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
+                      <div className="w-4/5 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-20 rounded-lg overflow-hidden mb-2.5" style={{ background: "#f5f7fb", border: "1px solid #e2e8f0" }}>
+                    <div className="h-5 flex items-center px-2.5 gap-1.5" style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
+                      <div className="w-10 h-1.5 rounded-full" style={{ background: "#2563eb" }} />
+                      <div className="ml-auto flex gap-1">
+                        <div className="w-5 h-1.5 rounded-full" style={{ background: "#cbd5e1" }} />
+                        <div className="w-5 h-1.5 rounded-full" style={{ background: "#cbd5e1" }} />
+                      </div>
+                    </div>
+                    <div className="px-2.5 pt-2 space-y-1.5">
+                      <div className="flex gap-1 items-center">
+                        <div className="w-0.5 h-3 rounded-full flex-shrink-0" style={{ background: "linear-gradient(180deg,#2563eb,#16a34a)" }} />
+                        <div className="w-14 h-1.5 rounded-full" style={{ background: "#1e293b" }} />
+                      </div>
+                      <div className="w-full h-1 rounded-full" style={{ background: "#e2e8f0" }} />
+                      <div className="w-4/5 h-1 rounded-full" style={{ background: "#e2e8f0" }} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-semibold ${isActive ? "text-accent" : "text-text"}`}>{t.label}</p>
+                    <p className="text-[11px] text-subtle mt-0.5 leading-snug">{t.desc}</p>
+                  </div>
+                  {isActive && (
+                    <span className="w-4 h-4 rounded-full bg-accent flex items-center justify-center flex-shrink-0 ml-2">
+                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                        <path d="M1.5 4l1.5 1.5 3.5-3" stroke="#000" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Site title */}
       <div className="rounded-xl border border-panelMuted bg-panel p-4 space-y-3">

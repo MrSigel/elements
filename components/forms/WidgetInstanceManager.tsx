@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { LoyaltyShopEditor } from "@/components/forms/LoyaltyShopEditor";
 
-const kinds = ["wager_bar","deposit_withdrawal","current_playing","bonushunt","tournament","slot_battle","slot_requests","hot_words","wheel","personal_bests","quick_guessing","loyalty","points_battle"];
+const kinds = ["wager_bar","deposit_withdrawal","bonushunt","tournament","slot_battle","slot_requests","hot_words","wheel","personal_bests","quick_guessing","loyalty","points_battle"];
 const FREE_KINDS = new Set(["hot_words", "slot_requests"]);
 const DEFAULT_WIDTH = 300;
 const DEFAULT_HEIGHT = 180;
