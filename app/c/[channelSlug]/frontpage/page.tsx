@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/server";
+import { getWebsiteConfig, getTheme } from "@/lib/website-config";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,6 +19,9 @@ export default async function ChannelFrontpagePage({ params }: { params: Promise
 
   const { data: channel } = await admin.from("channels").select("id").eq("slug", channelSlug).maybeSingle();
   if (!channel) return notFound();
+
+  const cfg = await getWebsiteConfig(channelSlug);
+  const t = getTheme(cfg.template);
 
   const { data: pages } = await admin
     .from("viewer_pages")
@@ -54,25 +58,19 @@ export default async function ChannelFrontpagePage({ params }: { params: Promise
       {/* Page header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <span
-            className="inline-block w-1 h-5 rounded-full"
-            style={{ background: "linear-gradient(180deg, #f5c451, #b22234)" }}
-          />
-          <h1 className="text-xl font-black uppercase tracking-wider" style={{ color: "#f5c451" }}>
+          <span className="inline-block w-1 h-5 rounded-full" style={{ background: t.headingBar }} />
+          <h1 className="text-xl font-black uppercase tracking-wider" style={{ color: t.headingText }}>
             Live Pages
           </h1>
         </div>
-        <p className="text-sm ml-3" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <p className="text-sm ml-3" style={{ color: t.mutedText }}>
           Real-time viewer pages — click to open
         </p>
       </div>
 
       {links.length === 0 ? (
-        <div
-          className="rounded-xl border p-8 text-center"
-          style={{ borderColor: "rgba(245,196,81,0.1)", background: "rgba(245,196,81,0.03)" }}
-        >
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <div className="rounded-xl border p-8 text-center" style={{ borderColor: t.emptyBorder, background: t.emptyBg }}>
+          <p className="text-sm" style={{ color: t.subtleText }}>
             No active live pages yet.
           </p>
         </div>
@@ -85,27 +83,23 @@ export default async function ChannelFrontpagePage({ params }: { params: Promise
               target="_blank"
               rel="noreferrer"
               className="group block rounded-xl border transition-all duration-200 overflow-hidden"
-              style={{
-                borderColor: "rgba(255,255,255,0.06)",
-                background: "rgba(255,255,255,0.03)"
-              }}
+              style={{ borderColor: t.cardBorder, background: t.cardBg }}
             >
-              {/* Colored top bar */}
               <div className="h-1 w-full" style={{ background: l.color }} />
               <div className="p-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-black text-sm mb-1" style={{ color: "#e5edf5" }}>
+                  <p className="font-black text-sm mb-1" style={{ color: t.tableColText }}>
                     {l.label}
                   </p>
                   {l.description && (
-                    <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <p className="text-xs leading-relaxed" style={{ color: t.mutedText }}>
                       {l.description}
                     </p>
                   )}
                 </div>
                 <div
                   className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  style={{ background: "rgba(255,255,255,0.06)" }}
+                  style={{ background: t.badgeBg }}
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                     <path d="M2 10L10 2M10 2H5M10 2V7" stroke={l.color} strokeWidth="1.5" strokeLinecap="round" />

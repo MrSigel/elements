@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/bot", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/onboarding"];
+const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/bot", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/onboarding", "/settings"];
 const ADMIN_PREFIX = "/admin";
 
 const COOKIE_OPTS = {
@@ -117,6 +117,7 @@ export const config = {
     "/moderation/:path*",
     "/shop/:path*",
     "/logs/:path*",
-    "/onboarding/:path*"
+    "/onboarding/:path*",
+    "/settings/:path*"
   ]
 };
