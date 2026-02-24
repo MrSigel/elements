@@ -114,22 +114,21 @@ export function DashboardShell({
         {/* ── Right side actions ─── */}
         <div className="flex-shrink-0 flex items-center gap-2">
           {/* Twitch connect / status */}
-          {isTwitchConnected ? (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#9147ff]/30 bg-[#9147ff]/10 text-[#bf94ff]">
-              <IcoTwitch />
-              <span className="hidden sm:inline truncate max-w-[100px]">
-                {twitchDisplayName ?? twitchLogin}
-              </span>
-            </div>
-          ) : (
-            <a
-              href="/api/auth/twitch/start"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#9147ff]/40 bg-[#9147ff]/10 text-[#bf94ff] hover:bg-[#9147ff]/20 hover:border-[#9147ff]/60 transition-all duration-150"
-            >
-              <IcoTwitch />
-              <span className="hidden sm:inline">Connect Twitch</span>
-            </a>
-          )}
+          <a
+            href="/api/auth/twitch/start"
+            title={isTwitchConnected ? "Reconnect Twitch" : "Connect Twitch"}
+            className={clsx(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150",
+              isTwitchConnected
+                ? "border-[#9147ff]/30 bg-[#9147ff]/10 text-[#bf94ff] hover:bg-[#9147ff]/20 hover:border-[#9147ff]/60"
+                : "border-[#9147ff]/40 bg-[#9147ff]/10 text-[#bf94ff] hover:bg-[#9147ff]/20 hover:border-[#9147ff]/60"
+            )}
+          >
+            <IcoTwitch />
+            <span className="hidden sm:inline truncate max-w-[100px]">
+              {isTwitchConnected ? (twitchDisplayName ?? twitchLogin) : "Connect Twitch"}
+            </span>
+          </a>
 
           {/* Sign out */}
           <button
