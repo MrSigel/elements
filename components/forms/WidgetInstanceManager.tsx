@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { LoyaltyShopEditor } from "@/components/forms/LoyaltyShopEditor";
 
 const kinds = ["wager_bar","deposit_withdrawal","current_playing","bonushunt","tournament","slot_battle","slot_requests","hot_words","wheel","personal_bests","quick_guessing","loyalty","points_battle"];
 const FREE_KINDS = new Set(["hot_words", "slot_requests"]);
@@ -389,6 +390,9 @@ export function WidgetInstanceManager({ overlayId, widgets, plan }: { overlayId:
               initialConfig={w.widget_configs?.[0]?.config ?? {}}
               onSave={saveColors}
             />
+
+            {/* Loyalty shop editor — only for loyalty widgets */}
+            {w.kind === "loyalty" && <LoyaltyShopEditor />}
 
             {/* Config editor */}
             <textarea

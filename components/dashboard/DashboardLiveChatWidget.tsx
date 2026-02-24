@@ -161,11 +161,6 @@ export function DashboardLiveChatWidget({ userId }: { userId?: string }) {
             </button>
           </div>
 
-          {/* Welcome banner */}
-          <div className="mx-3 mt-3 rounded-xl border border-accent/20 bg-accent/[0.07] px-3 py-2.5 text-[11px] leading-relaxed text-subtle flex-shrink-0">
-            Pulseframelabs Support — Erreichbar Mo–Fr, 08:00–19:00 Uhr. Wir antworten innerhalb weniger Minuten.
-          </div>
-
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 min-h-[180px] max-h-[260px]">
             {messages.length === 0 ? (

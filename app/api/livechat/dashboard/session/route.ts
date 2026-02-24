@@ -4,10 +4,6 @@ import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { hasTelegramLivechatConfig, sendTelegramLivechatMessage } from "@/lib/telegram-livechat";
 
 export async function POST() {
-  if (!hasTelegramLivechatConfig()) {
-    return NextResponse.json({ error: "telegram_not_configured" }, { status: 500 });
-  }
-
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -35,25 +31,20 @@ export async function POST() {
     body: "Welcome to Pulseframelabs' live chat. We are happy to assist you and usually respond within minutes during German business hours: 8:00 a.m. to 7:00 p.m."
   });
 
-  // Telegram bridge is optional — failure must not block the user from opening chat
+  // Notify support via Telegram silently — failure must not block the user from opening chat
   let bridge = "none";
-  try {
-    const msgId = await sendTelegramLivechatMessage(
-      `New Livechat Session\nSession: ${session.id}\nChannel: ${session.channel_slug}\nVisitor: ${session.visitor_name}\n\nReply to visitor messages in this chat or use:\n/reply ${session.id} your message`
-    );
-    if (msgId !== null) {
-      await admin.from("livechat_messages").insert({
-        session_id: session.id,
-        sender: "system",
-        body: "Telegram bridge connected.",
-        telegram_message_id: `tg:${msgId}`
-      });
-      bridge = "telegram";
+  if (hasTelegramLivechatConfig()) {
+    try {
+      const msgId = await sendTelegramLivechatMessage(
+        `New Livechat Session\nSession: ${session.id}\nChannel: ${session.channel_slug}\nVisitor: ${session.visitor_name}\n\nReply to visitor messages in this chat or use:\n/reply ${session.id} your message`
+      );
+      if (msgId !== null) {
+        bridge = "telegram";
+      }
+    } catch {
+      // Telegram notification failed — session is still valid; swallow silently
     }
-  } catch {
-    // Telegram notification failed — session is still valid; swallow silently
   }
 
   return NextResponse.json({ sessionId: session.id, sessionToken, bridge });
 }
-
