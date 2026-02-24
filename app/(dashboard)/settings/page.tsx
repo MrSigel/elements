@@ -1,5 +1,7 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
+import { DomainSettings } from "@/components/forms/DomainSettings";
 
 const PLAN_META: Record<string, { label: string; color: string }> = {
   starter:    { label: "Starter",    color: "bg-panelMuted text-subtle" },
@@ -16,20 +18,27 @@ export default async function SettingsPage() {
 
   let plan = "starter";
   let expiresAt: string | null = null;
+  let currentDomain: string | null = null;
+  let channelSlug: string | null = null;
 
   if (auth.user) {
     const admin = createServiceClient();
     const { data: channel } = await admin
       .from("channels")
-      .select("subscription_plan, subscription_expires_at")
+      .select("subscription_plan, subscription_expires_at, custom_domain, slug")
       .eq("owner_id", auth.user.id)
       .limit(1)
       .maybeSingle();
     if (channel) {
-      plan = (channel as { subscription_plan?: string }).subscription_plan ?? "starter";
-      expiresAt = (channel as { subscription_expires_at?: string }).subscription_expires_at ?? null;
+      plan = (channel as any).subscription_plan ?? "starter";
+      expiresAt = (channel as any).subscription_expires_at ?? null;
+      currentDomain = (channel as any).custom_domain ?? null;
+      channelSlug = (channel as any).slug ?? null;
     }
   }
+
+  const appHost = new URL(env.NEXT_PUBLIC_APP_URL).hostname;
+  const publicUrl = channelSlug ? `${env.NEXT_PUBLIC_APP_URL}/c/${channelSlug}` : null;
 
   const meta = PLAN_META[plan] ?? PLAN_META.starter;
   const expiry = expiresAt ? new Date(expiresAt) : null;
@@ -102,6 +111,12 @@ export default async function SettingsPage() {
             </div>
           </div>
         </section>
+
+        <DomainSettings
+          initialDomain={currentDomain}
+          appHost={appHost}
+          publicUrl={publicUrl}
+        />
       </div>
     </DashboardShell>
   );
