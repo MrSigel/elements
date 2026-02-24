@@ -51,7 +51,7 @@ async function refreshTwitchTokenIfNeeded(userId: string) {
 }
 
 // Module-level singletons
-const activeBots = new Map<string, tmi.Client>();
+export const activeBots = new Map<string, tmi.Client>();
 const stoppedBots = new Set<string>();
 
 type HotWord = { id: string; phrase: string; cooldown_seconds: number; per_user_limit: number };
