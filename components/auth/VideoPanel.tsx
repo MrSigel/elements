@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
+import { WidgetDemo } from "@/components/overlay/WidgetDemo";
 
 const FLOATING_CARDS = [
-  { src: "/overlay/bonushunt.webp", top: "8%", left: "5%", rot: "-4deg", delay: 0, scale: 1 },
-  { src: "/overlay/slot_vs_slot_battles.png", top: "30%", right: "4%", rot: "3.5deg", delay: 0.6, scale: 0.9 },
-  { src: "/overlay/quick_fuesses_twitch.webp", top: "55%", left: "8%", rot: "-2deg", delay: 1.1, scale: 0.85 },
-  { src: "/overlay/viewer_tournaments.webp", top: "72%", right: "6%", rot: "5deg", delay: 0.3, scale: 0.8 },
+  { kind: "bonushunt", name: "Bonus Hunt", top: "8%", left: "5%", rot: "-4deg", delay: 0, scale: 1 },
+  { kind: "slot_battle", name: "Slot vs Slot Battles", top: "30%", right: "4%", rot: "3.5deg", delay: 0.6, scale: 0.9 },
+  { kind: "quick_guessing", name: "Quick Guessing", top: "55%", left: "8%", rot: "-2deg", delay: 1.1, scale: 0.85 },
+  { kind: "tournament", name: "Viewer Tournaments", top: "72%", right: "6%", rot: "5deg", delay: 0.3, scale: 0.8 },
 ];
 
 export function VideoPanel() {
@@ -32,11 +32,11 @@ export function VideoPanel() {
         }}
       />
 
-      {/* Floating widget screenshots */}
+      {/* Floating widget demos */}
       {FLOATING_CARDS.map((card, i) => (
         <motion.div
           key={i}
-          className="absolute w-[220px] md:w-[260px] rounded-xl overflow-hidden border border-accent/25 shadow-2xl"
+          className="absolute w-[220px] md:w-[260px] h-[170px] md:h-[200px] rounded-xl overflow-hidden border border-accent/25 shadow-2xl"
           style={{
             top: card.top,
             left: "left" in card ? card.left : undefined,
@@ -61,15 +61,7 @@ export function VideoPanel() {
             },
           }}
         >
-          <Image
-            src={card.src}
-            alt="Widget preview"
-            width={520}
-            height={310}
-            className="w-full h-auto object-cover"
-            priority={i === 0}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          <WidgetDemo kind={card.kind} name={card.name} />
         </motion.div>
       ))}
 
