@@ -10,11 +10,12 @@ type Props = {
 
 export function DomainSettings({ initialDomain, appHost, publicUrl }: Props) {
   const [domain, setDomain] = useState(initialDomain ?? "");
+  const [savedDomain, setSavedDomain] = useState(initialDomain ?? "");
   const [saving, setSaving] = useState(false);
   const [state, setState] = useState<"idle" | "ok" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  async function save() {
+  async function saveDomain(value: string) {
     setSaving(true);
     setState("idle");
     setError(null);
@@ -22,12 +23,13 @@ export function DomainSettings({ initialDomain, appHost, publicUrl }: Props) {
       const res = await fetch("/api/settings/domain", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ domain })
+        body: JSON.stringify({ domain: value })
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) throw new Error(body?.error ?? "save_failed");
+      setSavedDomain(value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, ""));
       setState("ok");
-      setTimeout(() => setState("idle"), 4000);
+      setTimeout(() => setState("idle"), 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "save_failed");
       setState("error");
@@ -36,19 +38,30 @@ export function DomainSettings({ initialDomain, appHost, publicUrl }: Props) {
     }
   }
 
+  function save() { saveDomain(domain); }
+
+  function removeDomain() {
+    setDomain("");
+    saveDomain("");
+  }
+
   const trimmed = domain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+  // The URL visitors will use — custom domain takes priority over /c/slug
+  const visitorUrl = savedDomain ? `https://${savedDomain}` : publicUrl;
 
   return (
     <div className="rounded-xl border border-panelMuted bg-panel p-5 space-y-5">
       <div>
         <p className="text-sm font-semibold text-text">Custom Domain</p>
         <p className="text-xs text-subtle mt-0.5">
-          Connect your own domain to your public landing page. Visitors who go to your domain will see your page at{" "}
-          {publicUrl ? (
-            <a href={publicUrl} target="_blank" rel="noreferrer" className="text-accent hover:underline">{publicUrl}</a>
-          ) : (
-            "your landing page"
-          )}.
+          Connect your own domain. Visitors who go to your domain will see your page — the URL stays as your domain, no redirects.{" "}
+          {visitorUrl ? (
+            <>
+              Your public URL:{" "}
+              <a href={visitorUrl} target="_blank" rel="noreferrer" className="text-accent hover:underline font-mono">{visitorUrl}</a>
+            </>
+          ) : null}
         </p>
       </div>
 
@@ -76,22 +89,24 @@ export function DomainSettings({ initialDomain, appHost, publicUrl }: Props) {
         {state === "ok" && (
           <p className="text-xs text-emerald-400 flex items-center gap-1">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Saved
+            Domain saved and registered — set up DNS below to activate it
           </p>
         )}
         {state === "error" && (
           <p className="text-xs text-danger">
-            {error === "domain_already_taken" ? "This domain is already connected to another account." : (error ?? "Save failed — try again")}
+            {error === "domain_already_taken"
+              ? "This domain is already connected to another account."
+              : (error ?? "Save failed — try again")}
           </p>
         )}
       </div>
 
-      {/* DNS instructions */}
+      {/* DNS instructions — shown as long as a domain is typed */}
       {trimmed && (
         <div className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-3">
-          <p className="text-xs font-semibold text-text">DNS Setup Instructions</p>
+          <p className="text-xs font-semibold text-text">DNS Setup — 1 record required</p>
           <p className="text-xs text-subtle leading-relaxed">
-            Add the following record to your domain&apos;s DNS settings. Changes can take up to 24 hours to propagate.
+            Add this record in your domain registrar (Cloudflare, Namecheap, etc.). DNS changes can take up to 24 hours.
           </p>
 
           <div className="overflow-auto rounded-lg border border-white/[0.07] bg-panelMuted">
@@ -111,33 +126,35 @@ export function DomainSettings({ initialDomain, appHost, publicUrl }: Props) {
                       ? trimmed.split(".")[0]
                       : "@"}
                   </td>
-                  <td className="px-3 py-2.5 text-text flex items-center gap-2">
-                    {appHost}
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText(appHost)}
-                      className="ml-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-subtle hover:text-text transition-colors"
-                    >
-                      copy
-                    </button>
+                  <td className="px-3 py-2.5 text-text">
+                    <span className="flex items-center gap-2">
+                      {appHost}
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(appHost)}
+                        className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-subtle hover:text-text transition-colors"
+                      >
+                        copy
+                      </button>
+                    </span>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <div className="rounded-lg bg-yellow-500/5 border border-yellow-500/20 px-3 py-2.5 text-xs text-yellow-300/80 leading-relaxed">
-            <strong className="text-yellow-200">Note:</strong> After setting up DNS, you will also need to add your custom domain in your hosting provider (Render, Vercel, etc.) as a custom domain for this app.
+          <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5 text-xs text-emerald-300/80 leading-relaxed">
+            <strong className="text-emerald-200">How it works:</strong> Once DNS propagates, visitors going to <span className="font-mono">{trimmed}</span> will see your page directly — no redirect, your domain stays in the browser.
           </div>
         </div>
       )}
 
       {/* Remove domain */}
-      {(initialDomain || domain) && (
+      {(savedDomain || domain) && (
         <div className="pt-1 border-t border-panelMuted">
           <button
             type="button"
-            onClick={() => { setDomain(""); }}
+            onClick={removeDomain}
             className="text-xs text-subtle/60 hover:text-danger transition-colors"
           >
             Remove custom domain
