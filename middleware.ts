@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = ["/home", "/overlays", "/overlay-preview", "/widgets", "/bot", "/website", "/frontpages", "/moderation", "/shop", "/logs", "/onboarding", "/settings"];
 const ADMIN_PREFIX = "/admin";
+const APP_HOST = process.env.NEXT_PUBLIC_APP_URL
+  ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname
+  : null;
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -53,8 +56,41 @@ async function refreshSession(refreshToken: string): Promise<RefreshedSession> {
   return { access_token: data.access_token, refresh_token: data.refresh_token, expires_in: data.expires_in ?? 3600 };
 }
 
+async function lookupCustomDomain(host: string): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Use service role key so RLS doesn't block the public-domain lookup
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !serviceKey) return null;
+
+  const res = await fetch(
+    `${url}/rest/v1/channels?custom_domain=eq.${encodeURIComponent(host)}&select=slug&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!res.ok) return null;
+  const rows = await res.json() as { slug?: string }[];
+  return rows?.[0]?.slug ?? null;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Custom domain rewrite — if the Host doesn't match the app's own hostname,
+  // look it up in channels.custom_domain and serve /c/[slug][path]
+  const host = req.headers.get("host")?.split(":")[0] ?? "";
+  if (APP_HOST && host && host !== APP_HOST) {
+    // Skip Next.js internals
+    if (!pathname.startsWith("/_next") && !pathname.startsWith("/favicon")) {
+      const slug = await lookupCustomDomain(host);
+      if (slug) {
+        // Rewrite: casino.example.com/hunt  →  /c/my-slug/hunt
+        // casino.example.com/             →  /c/my-slug/startseite (default tab)
+        const rewritePath = pathname === "/" ? `/c/${slug}/startseite` : `/c/${slug}${pathname}`;
+        return NextResponse.rewrite(new URL(rewritePath, req.url));
+      }
+      // Unknown custom domain — 404
+      return new NextResponse("Not found", { status: 404 });
+    }
+  }
 
   // Admin route protection — check admin-token cookie presence
   if (isAdmin(pathname)) {
@@ -106,18 +142,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/admin/:path*",
-    "/overlays/:path*",
-    "/home/:path*",
-    "/overlay-preview/:path*",
-    "/widgets/:path*",
-    "/bot/:path*",
-    "/website/:path*",
-    "/frontpages/:path*",
-    "/moderation/:path*",
-    "/shop/:path*",
-    "/logs/:path*",
-    "/onboarding/:path*",
-    "/settings/:path*"
+    // Catch every request except static assets so custom domain rewrites work
+    "/((?!_next/static|_next/image|favicon.ico).*)"
   ]
 };
