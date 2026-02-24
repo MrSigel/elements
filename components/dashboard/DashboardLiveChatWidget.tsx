@@ -9,9 +9,10 @@ type ChatMessage = {
   created_at: string;
 };
 
-const SESSION_KEY = "dashboard-livechat-session";
+const BASE_SESSION_KEY = "dashboard-livechat-session";
 
-export function DashboardLiveChatWidget() {
+export function DashboardLiveChatWidget({ userId }: { userId?: string }) {
+  const sessionKey = userId ? `${BASE_SESSION_KEY}-${userId}` : BASE_SESSION_KEY;
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [sessionToken, setSessionToken] = useState("");
@@ -28,7 +29,12 @@ export function DashboardLiveChatWidget() {
   }
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(SESSION_KEY);
+    // Reset session state whenever the user changes
+    setSessionId("");
+    setSessionToken("");
+    setMessages([]);
+
+    const raw = window.localStorage.getItem(sessionKey);
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw) as { sessionId?: string; sessionToken?: string };
@@ -39,7 +45,7 @@ export function DashboardLiveChatWidget() {
     } catch {
       // ignore malformed local storage payload
     }
-  }, []);
+  }, [sessionKey]);
 
   useEffect(() => {
     if (!sessionId || !sessionToken) return;
@@ -79,7 +85,7 @@ export function DashboardLiveChatWidget() {
       }
       setSessionId(data.sessionId);
       setSessionToken(data.sessionToken);
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify({ sessionId: data.sessionId, sessionToken: data.sessionToken }));
+      window.localStorage.setItem(sessionKey, JSON.stringify({ sessionId: data.sessionId, sessionToken: data.sessionToken }));
       return { sessionId: data.sessionId, sessionToken: data.sessionToken };
     } catch (err) {
       const message = err instanceof Error ? err.message : "session_failed";

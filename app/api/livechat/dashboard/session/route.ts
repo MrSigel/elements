@@ -35,6 +35,8 @@ export async function POST() {
     body: "Welcome to Pulseframelabs' live chat. We are happy to assist you and usually respond within minutes during German business hours: 8:00 a.m. to 7:00 p.m."
   });
 
+  // Telegram bridge is optional — failure must not block the user from opening chat
+  let bridge = "none";
   try {
     const msgId = await sendTelegramLivechatMessage(
       `New Livechat Session\nSession: ${session.id}\nChannel: ${session.channel_slug}\nVisitor: ${session.visitor_name}\n\nReply to visitor messages in this chat or use:\n/reply ${session.id} your message`
@@ -46,12 +48,12 @@ export async function POST() {
         body: "Telegram bridge connected.",
         telegram_message_id: `tg:${msgId}`
       });
+      bridge = "telegram";
     }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "telegram_send_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+  } catch {
+    // Telegram notification failed — session is still valid; swallow silently
   }
 
-  return NextResponse.json({ sessionId: session.id, sessionToken, bridge: "telegram" });
+  return NextResponse.json({ sessionId: session.id, sessionToken, bridge });
 }
 

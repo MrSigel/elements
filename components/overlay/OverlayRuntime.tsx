@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
 
 type Snapshot = {
@@ -9,7 +9,14 @@ type Snapshot = {
   state: Record<string, unknown>;
 };
 
-type Layout = { id: string; x: number; y: number; width: number; height: number; kind: string; name: string };
+type Layout = { id: string; x: number; y: number; width: number; height: number; kind: string; name: string; config?: Record<string, unknown> };
+
+function hexToRgb(hex: string): string | null {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
 
 const moneyFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
@@ -416,13 +423,24 @@ export function OverlayRuntime({
     <div className="ovr-root relative h-screen w-screen overflow-hidden bg-transparent">
       {layout.map((item, index) => {
         const snap = byWidget.get(item.id);
+        const colors = item.config?.colors as Record<string, string> | undefined;
+        const shellVars: Record<string, string> = { animationDelay: `${(index % 6) * 180}ms` };
+        if (colors) {
+          const accent = colors.accent ? hexToRgb(colors.accent) : null;
+          const secondary = colors.secondary ? hexToRgb(colors.secondary) : null;
+          const bg = colors.bg ? hexToRgb(colors.bg) : null;
+          if (accent) shellVars["--ovr-accent-rgb"] = accent;
+          if (secondary) shellVars["--ovr-secondary-rgb"] = secondary;
+          if (bg) shellVars["--ovr-bg-rgb"] = bg;
+          if (colors.text) shellVars["--ovr-text"] = colors.text;
+        }
         return (
           <div
             key={item.id}
             className="absolute"
             style={{ left: `${item.x}px`, top: `${item.y}px`, width: `${item.width}px`, height: `${item.height}px` }}
           >
-            <div className="ovr-shell h-full w-full" style={{ animationDelay: `${(index % 6) * 180}ms` }}>
+            <div className="ovr-shell h-full w-full" style={shellVars as React.CSSProperties}>
               <div className="ovr-shell-glow" />
               <div className="ovr-header">
                 <p className="ovr-title">{item.name}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 const kinds = ["wager_bar","deposit_withdrawal","current_playing","bonushunt","tournament","slot_battle","slot_requests","hot_words","wheel","personal_bests","quick_guessing","loyalty","points_battle"];
 const FREE_KINDS = new Set(["hot_words", "slot_requests"]);
@@ -51,6 +51,114 @@ function CopyButton({ text }: { text: string }) {
       )}
       {copied ? "Copied" : "Copy"}
     </button>
+  );
+}
+
+type WidgetColors = { accent: string; secondary: string; bg: string; text: string };
+
+const COLOR_DEFAULTS: WidgetColors = {
+  accent: "#f5c451",
+  secondary: "#b22234",
+  bg: "#0f151e",
+  text: "#e5edf5"
+};
+
+function ColorEditor({
+  widgetId,
+  initialConfig,
+  onSave
+}: {
+  widgetId: string;
+  initialConfig: Record<string, unknown>;
+  onSave: (id: string, config: Record<string, unknown>) => Promise<void>;
+}) {
+  const saved = (initialConfig.colors as Partial<WidgetColors> | undefined) ?? {};
+  const [accent, setAccent] = useState(saved.accent ?? COLOR_DEFAULTS.accent);
+  const [secondary, setSecondary] = useState(saved.secondary ?? COLOR_DEFAULTS.secondary);
+  const [bg, setBg] = useState(saved.bg ?? COLOR_DEFAULTS.bg);
+  const [text, setText] = useState(saved.text ?? COLOR_DEFAULTS.text);
+  const [saving, setSaving] = useState(false);
+  const [flash, setFlash] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    await onSave(widgetId, { ...initialConfig, colors: { accent, secondary, bg, text } });
+    setSaving(false);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 1800);
+  }
+
+  function resetDefaults() {
+    setAccent(COLOR_DEFAULTS.accent);
+    setSecondary(COLOR_DEFAULTS.secondary);
+    setBg(COLOR_DEFAULTS.bg);
+    setText(COLOR_DEFAULTS.text);
+  }
+
+  const swatches: { label: string; value: string; set: (v: string) => void }[] = [
+    { label: "Accent", value: accent, set: setAccent },
+    { label: "Secondary", value: secondary, set: setSecondary },
+    { label: "Background", value: bg, set: setBg },
+    { label: "Text", value: text, set: setText }
+  ];
+
+  return (
+    <div className="rounded-lg border border-panelMuted bg-panelMuted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-subtle uppercase tracking-wide">Widget Colors</p>
+        <button
+          type="button"
+          onClick={resetDefaults}
+          className="text-[10px] text-subtle/50 hover:text-subtle transition-colors"
+        >
+          Reset defaults
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {swatches.map(({ label, value, set }) => (
+          <label key={label} className="flex flex-col gap-1.5 cursor-pointer">
+            <span className="text-[10px] text-subtle/70 uppercase tracking-wide">{label}</span>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-shrink-0">
+                <input
+                  type="color"
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+                <div
+                  className="w-8 h-8 rounded-lg border border-white/20 shadow-sm"
+                  style={{ backgroundColor: value }}
+                />
+              </div>
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => { if (/^#[0-9a-f]{0,6}$/i.test(e.target.value)) set(e.target.value); }}
+                maxLength={7}
+                className="w-20 rounded bg-panelMuted px-2 py-1 font-mono text-[11px] text-text/80 border border-white/[0.06] focus:outline-none focus:border-accent/40"
+              />
+            </div>
+          </label>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-black disabled:opacity-60 hover:bg-accent/90 transition-colors"
+        >
+          {saving ? "Saving…" : "Save Colors"}
+        </button>
+        {flash && (
+          <span className="text-xs text-emerald-400 flex items-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Saved — reload OBS to apply
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -136,6 +244,14 @@ export function WidgetInstanceManager({ overlayId, widgets, plan }: { overlayId:
     });
     location.reload();
   }
+
+  const saveColors = useCallback(async (id: string, config: Record<string, unknown>) => {
+    await fetch(`/api/widget-instances/${id}/config`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config })
+    });
+  }, []);
 
   async function rotateToken(id: string) {
     setTokenLoading((prev) => ({ ...prev, [id]: true }));
@@ -266,6 +382,13 @@ export function WidgetInstanceManager({ overlayId, widgets, plan }: { overlayId:
                 </p>
               )}
             </div>
+
+            {/* Color editor */}
+            <ColorEditor
+              widgetId={w.id}
+              initialConfig={w.widget_configs?.[0]?.config ?? {}}
+              onSave={saveColors}
+            />
 
             {/* Config editor */}
             <textarea

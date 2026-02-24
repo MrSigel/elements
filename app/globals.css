@@ -552,10 +552,10 @@ input, button, select, textarea {
 
 @keyframes ovrPulse {
   0%, 100% {
-    box-shadow: 0 0 12px rgba(245, 196, 81, 0.15);
+    box-shadow: 0 0 12px rgba(var(--ovr-accent-rgb), 0.15);
   }
   50% {
-    box-shadow: 0 0 22px rgba(245, 196, 81, 0.35);
+    box-shadow: 0 0 22px rgba(var(--ovr-accent-rgb), 0.35);
   }
 }
 
@@ -572,15 +572,21 @@ input, button, select, textarea {
 
 .ovr-root {
   background:
-    radial-gradient(900px 500px at 5% 10%, rgba(245, 196, 81, 0.09), transparent 60%),
-    radial-gradient(800px 600px at 95% 90%, rgba(178, 34, 52, 0.1), transparent 60%);
+    radial-gradient(900px 500px at 5% 10%, rgba(var(--ovr-accent-rgb), 0.09), transparent 60%),
+    radial-gradient(800px 600px at 95% 90%, rgba(var(--ovr-secondary-rgb), 0.1), transparent 60%);
 }
 
 .ovr-shell {
+  /* ── Color tokens (overridable per-widget via inline style) ── */
+  --ovr-accent-rgb: 245, 196, 81;
+  --ovr-secondary-rgb: 178, 34, 52;
+  --ovr-bg-rgb: 15, 21, 30;
+  --ovr-text: #e5edf5;
+
   position: relative;
   border-radius: 14px;
-  border: 1px solid rgba(245, 196, 81, 0.28);
-  background: linear-gradient(145deg, rgba(15, 21, 30, 0.95), rgba(10, 14, 21, 0.88));
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.28);
+  background: linear-gradient(145deg, rgba(var(--ovr-bg-rgb), 0.95), rgba(var(--ovr-bg-rgb), 0.88));
   box-shadow:
     0 14px 34px rgba(0, 0, 0, 0.48),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -596,7 +602,7 @@ input, button, select, textarea {
   left: 0;
   width: 42%;
   height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(245, 196, 81, 0.16) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--ovr-accent-rgb), 0.16) 50%, transparent 100%);
   transform: translateX(-110%);
   animation: ovrShimmer 4.8s ease-in-out infinite;
   pointer-events: none;
@@ -606,7 +612,7 @@ input, button, select, textarea {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(245, 196, 81, 0.06), transparent 55%);
+  background: linear-gradient(180deg, rgba(var(--ovr-accent-rgb), 0.06), transparent 55%);
 }
 
 .ovr-header {
@@ -616,14 +622,14 @@ input, button, select, textarea {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  border-bottom: 1px solid rgba(245, 196, 81, 0.2);
-  background: linear-gradient(90deg, rgba(245, 196, 81, 0.09), rgba(178, 34, 52, 0.08));
+  border-bottom: 1px solid rgba(var(--ovr-accent-rgb), 0.2);
+  background: linear-gradient(90deg, rgba(var(--ovr-accent-rgb), 0.09), rgba(var(--ovr-secondary-rgb), 0.08));
   padding: 8px 10px;
 }
 
 .ovr-title {
   margin: 0;
-  color: #f7e3ad;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 11px;
   line-height: 1;
   font-weight: 800;
@@ -632,10 +638,10 @@ input, button, select, textarea {
 }
 
 .ovr-kind {
-  border: 1px solid rgba(245, 196, 81, 0.35);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.35);
   border-radius: 999px;
   padding: 2px 7px;
-  color: #f5c451;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
@@ -648,14 +654,14 @@ input, button, select, textarea {
   z-index: 1;
   height: calc(100% - 40px);
   padding: 10px;
-  color: #e5edf5;
+  color: var(--ovr-text);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .ovr-label {
   margin: 0;
-  color: #f5c451;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -664,7 +670,7 @@ input, button, select, textarea {
 
 .ovr-value {
   margin: 0;
-  color: #f5c451;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 13px;
   font-weight: 800;
 }
@@ -680,10 +686,10 @@ input, button, select, textarea {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(245, 196, 81, 0.35);
-  background: rgba(245, 196, 81, 0.12);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.35);
+  background: rgba(var(--ovr-accent-rgb), 0.12);
   padding: 2px 9px;
-  color: #f5c451;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -691,7 +697,7 @@ input, button, select, textarea {
 
 .ovr-chip--active {
   color: #0c1018;
-  background: linear-gradient(135deg, #f5c451, #e8a020);
+  background: linear-gradient(135deg, rgb(var(--ovr-accent-rgb)), rgba(var(--ovr-accent-rgb), 0.7));
 }
 
 .ovr-chip--live {
@@ -705,7 +711,7 @@ input, button, select, textarea {
   width: 100%;
   height: 8px;
   border-radius: 999px;
-  border: 1px solid rgba(245, 196, 81, 0.16);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.16);
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
@@ -713,8 +719,8 @@ input, button, select, textarea {
 .ovr-progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #f5c451, #e8a020, #b22234);
-  box-shadow: 0 0 14px rgba(245, 196, 81, 0.4);
+  background: linear-gradient(90deg, rgb(var(--ovr-accent-rgb)), rgba(var(--ovr-accent-rgb), 0.75), rgb(var(--ovr-secondary-rgb)));
+  box-shadow: 0 0 14px rgba(var(--ovr-accent-rgb), 0.4);
   transition: width 500ms ease-out;
 }
 
@@ -731,7 +737,7 @@ input, button, select, textarea {
 }
 
 .ovr-stat-tile {
-  border: 1px solid rgba(245, 196, 81, 0.16);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.16);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
   padding: 7px;
@@ -739,8 +745,8 @@ input, button, select, textarea {
 }
 
 .ovr-stat-tile--accent {
-  border-color: rgba(245, 196, 81, 0.3);
-  background: rgba(245, 196, 81, 0.1);
+  border-color: rgba(var(--ovr-accent-rgb), 0.3);
+  background: rgba(var(--ovr-accent-rgb), 0.1);
 }
 
 .ovr-stat-tile--success {
@@ -763,7 +769,7 @@ input, button, select, textarea {
 
 .ovr-stat-value {
   margin: 2px 0 0;
-  color: #f7f8fb;
+  color: var(--ovr-text);
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
@@ -785,7 +791,7 @@ input, button, select, textarea {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border: 1px solid rgba(245, 196, 81, 0.14);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
   padding: 6px 8px;
@@ -794,7 +800,7 @@ input, button, select, textarea {
 
 .ovr-list-left {
   min-width: 0;
-  color: #e5edf5;
+  color: var(--ovr-text);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
@@ -803,14 +809,14 @@ input, button, select, textarea {
 }
 
 .ovr-list-right {
-  color: #f5c451;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .ovr-stack {
-  border-top: 1px solid rgba(245, 196, 81, 0.16);
+  border-top: 1px solid rgba(var(--ovr-accent-rgb), 0.16);
   padding-top: 6px;
   display: flex;
   flex-direction: column;
@@ -825,10 +831,10 @@ input, button, select, textarea {
 }
 
 .ovr-vs-badge {
-  border: 1px solid rgba(245, 196, 81, 0.36);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.36);
   border-radius: 999px;
-  background: rgba(245, 196, 81, 0.15);
-  color: #f5c451;
+  background: rgba(var(--ovr-accent-rgb), 0.15);
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
@@ -837,7 +843,7 @@ input, button, select, textarea {
 }
 
 .ovr-team-card {
-  border: 1px solid rgba(245, 196, 81, 0.2);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.2);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
   text-align: center;
@@ -846,7 +852,7 @@ input, button, select, textarea {
 
 .ovr-team-name {
   margin: 0;
-  color: #e5edf5;
+  color: var(--ovr-text);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -856,17 +862,17 @@ input, button, select, textarea {
 
 .ovr-team-score {
   margin: 2px 0 1px;
-  color: #f5c451;
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 20px;
   font-weight: 900;
   line-height: 1;
 }
 
 .ovr-winner-banner {
-  border: 1px solid rgba(245, 196, 81, 0.34);
+  border: 1px solid rgba(var(--ovr-accent-rgb), 0.34);
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(245, 196, 81, 0.15), rgba(178, 34, 52, 0.14));
-  color: #f7e3ad;
+  background: linear-gradient(135deg, rgba(var(--ovr-accent-rgb), 0.15), rgba(var(--ovr-secondary-rgb), 0.14));
+  color: rgb(var(--ovr-accent-rgb));
   font-size: 11px;
   font-weight: 700;
   padding: 7px 8px;

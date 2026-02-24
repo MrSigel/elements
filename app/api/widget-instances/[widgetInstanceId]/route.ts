@@ -11,17 +11,18 @@ async function widgetChannel(widgetInstanceId: string) {
   return { channelId: overlayRel.channel_id as string, overlayId: data.overlay_id };
 }
 
-export async function PATCH(req: NextRequest, { params }: any) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ widgetInstanceId: string }> }) {
+  const { widgetInstanceId } = await params;
   const body = await req.json();
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   try {
-    const ctx = await widgetChannel(params.widgetInstanceId);
-    await requireChannelPermission({ userId: auth.user.id, channelId: ctx.channelId, permissionKey: "widget_manage", overlayId: ctx.overlayId, widgetInstanceId: params.widgetInstanceId });
+    const ctx = await widgetChannel(widgetInstanceId);
+    await requireChannelPermission({ userId: auth.user.id, channelId: ctx.channelId, permissionKey: "widget_manage", overlayId: ctx.overlayId, widgetInstanceId });
     const admin = createServiceClient();
-    const { error } = await admin.from("widget_instances").update(body).eq("id", params.widgetInstanceId);
+    const { error } = await admin.from("widget_instances").update(body).eq("id", widgetInstanceId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -30,16 +31,17 @@ export async function PATCH(req: NextRequest, { params }: any) {
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: any) {
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ widgetInstanceId: string }> }) {
+  const { widgetInstanceId } = await params;
   const userClient = await createServerClient();
   const { data: auth } = await userClient.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   try {
-    const ctx = await widgetChannel(params.widgetInstanceId);
-    await requireChannelPermission({ userId: auth.user.id, channelId: ctx.channelId, permissionKey: "widget_manage", overlayId: ctx.overlayId, widgetInstanceId: params.widgetInstanceId });
+    const ctx = await widgetChannel(widgetInstanceId);
+    await requireChannelPermission({ userId: auth.user.id, channelId: ctx.channelId, permissionKey: "widget_manage", overlayId: ctx.overlayId, widgetInstanceId });
     const admin = createServiceClient();
-    const { error } = await admin.from("widget_instances").delete().eq("id", params.widgetInstanceId);
+    const { error } = await admin.from("widget_instances").delete().eq("id", widgetInstanceId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (error) {

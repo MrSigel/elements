@@ -12,8 +12,9 @@ async function widgetChannel(widgetInstanceId: string) {
   return { channelId: overlayRel.channel_id as string, overlayId: data.overlay_id };
 }
 
-export async function PUT(req: NextRequest, { params }: any) {
-  const parsed = widgetConfigUpsertSchema.safeParse({ ...(await req.json()), widgetInstanceId: params.widgetInstanceId });
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ widgetInstanceId: string }> }) {
+  const { widgetInstanceId } = await params;
+  const parsed = widgetConfigUpsertSchema.safeParse({ ...(await req.json()), widgetInstanceId });
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   const userClient = await createServerClient();
@@ -21,11 +22,11 @@ export async function PUT(req: NextRequest, { params }: any) {
   if (!auth.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   try {
-    const ctx = await widgetChannel(params.widgetInstanceId);
-    await requireChannelPermission({ userId: auth.user.id, channelId: ctx.channelId, permissionKey: "widget_manage", overlayId: ctx.overlayId, widgetInstanceId: params.widgetInstanceId });
+    const ctx = await widgetChannel(widgetInstanceId);
+    await requireChannelPermission({ userId: auth.user.id, channelId: ctx.channelId, permissionKey: "widget_manage", overlayId: ctx.overlayId, widgetInstanceId });
 
     const admin = createServiceClient();
-    const { error } = await admin.from("widget_configs").upsert({ widget_instance_id: params.widgetInstanceId, config: parsed.data.config, updated_at: new Date().toISOString() }, { onConflict: "widget_instance_id" });
+    const { error } = await admin.from("widget_configs").upsert({ widget_instance_id: widgetInstanceId, config: parsed.data.config, updated_at: new Date().toISOString() }, { onConflict: "widget_instance_id" });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -136,22 +136,20 @@ export async function POST(req: NextRequest) {
     .single();
   if (error || !inserted) return NextResponse.json({ error: "insert_failed" }, { status: 500 });
 
-  if (!hasTelegramLivechatConfig()) {
-    return NextResponse.json({ error: "telegram_not_configured" }, { status: 500 });
-  }
-
-  try {
-    const msgId = await sendTelegramLivechatMessage(
-      `Session ${session.id}\nChannel: ${session.channel_slug}\n\nVisitor:\n${message}`
-    );
-    if (msgId !== null) {
-      await admin.from("livechat_messages").update({ telegram_message_id: `tg:${msgId}` }).eq("id", inserted.id);
+  // Telegram is a notification side-channel — failures must not prevent the user from chatting
+  if (hasTelegramLivechatConfig()) {
+    try {
+      const msgId = await sendTelegramLivechatMessage(
+        `Session ${session.id}\nChannel: ${session.channel_slug}\n\nVisitor:\n${message}`
+      );
+      if (msgId !== null) {
+        await admin.from("livechat_messages").update({ telegram_message_id: `tg:${msgId}` }).eq("id", inserted.id);
+      }
+    } catch {
+      // Telegram notification failed — message is already saved; swallow silently
     }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "telegram_send_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
   }
 
-  return NextResponse.json({ ok: true, delivery: "telegram", message: inserted });
+  return NextResponse.json({ ok: true, message: inserted });
 }
 

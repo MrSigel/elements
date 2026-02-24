@@ -126,10 +126,12 @@ const ADMIN_ITEMS = NAV_ITEMS.slice(8);
 
 export function DashboardShell({
   children,
-  inspector
+  inspector,
+  userId
 }: {
   children: React.ReactNode;
   inspector?: React.ReactNode;
+  userId?: string;
 }) {
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -236,7 +238,7 @@ export function DashboardShell({
           {inspector}
         </aside>
       )}
-      <DashboardLiveChatWidget />
+      <DashboardLiveChatWidget userId={userId} />
     </div>
   );
 }

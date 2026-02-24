@@ -11,7 +11,7 @@ export default async function WidgetObsPage({ params }: { params: Promise<{ widg
 
   const { data: tokenRow } = await admin
     .from("widget_tokens")
-    .select("widget_instance_id, widget_instances!inner(id, kind, name, width, height, overlay_id, is_enabled)")
+    .select("widget_instance_id, widget_instances!inner(id, kind, name, width, height, overlay_id, is_enabled, widget_configs(config))")
     .eq("public_token", widgetToken)
     .eq("revoked", false)
     .single();
@@ -27,6 +27,7 @@ export default async function WidgetObsPage({ params }: { params: Promise<{ widg
     .eq("widget_instance_id", wi.id)
     .maybeSingle();
 
+  const wiConfig = Array.isArray(wi.widget_configs) ? wi.widget_configs[0] : wi.widget_configs;
   const layout = [{
     id: wi.id,
     x: 0,
@@ -34,7 +35,8 @@ export default async function WidgetObsPage({ params }: { params: Promise<{ widg
     width: Number(wi.width),
     height: Number(wi.height),
     kind: wi.kind,
-    name: wi.name
+    name: wi.name,
+    config: (wiConfig as { config?: Record<string, unknown> } | null)?.config ?? {}
   }];
 
   return (
