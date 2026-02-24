@@ -50,8 +50,9 @@ async function refreshTwitchTokenIfNeeded(userId: string) {
   return { accessToken: refreshed.access_token, refreshToken: refreshed.refresh_token ?? refreshToken };
 }
 
-// Module-level singleton: channelLogin → cleanup function
+// Module-level singletons
 const activeBots = new Map<string, () => void>();
+const stoppedBots = new Set<string>(); // channels explicitly stopped — don't auto-reconnect
 
 type HotWord = { id: string; phrase: string; cooldown_seconds: number; per_user_limit: number };
 
@@ -132,6 +133,18 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
       .eq("twitch_user_id", username);
     return ((data ?? []) as { points_delta: number }[]).reduce((sum, r) => sum + r.points_delta, 0);
   }
+
+  socket.on("error", (err) => {
+    console.error(`[bot:${channelLogin}] socket error: ${err.message}`);
+  });
+
+  socket.on("close", () => {
+    activeBots.delete(channelLogin);
+    // Auto-reconnect unless the bot was explicitly stopped
+    if (!stoppedBots.has(channelLogin)) {
+      setTimeout(() => { void ensureBotStarted(channelLogin); }, 5_000);
+    }
+  });
 
   socket.on("data", async (chunk) => {
     const text = chunk.toString("utf8");
@@ -422,6 +435,7 @@ async function startChannelBot(channelLogin: string): Promise<() => void> {
 
 /** Start the channel bot if not already running. Updates DB flag for persistence. */
 export async function ensureBotStarted(channelLogin: string): Promise<void> {
+  stoppedBots.delete(channelLogin); // allow reconnect from now on
   if (activeBots.has(channelLogin)) return;
   const cleanup = await startChannelBot(channelLogin);
   activeBots.set(channelLogin, cleanup);
@@ -431,6 +445,7 @@ export async function ensureBotStarted(channelLogin: string): Promise<void> {
 
 /** Stop the channel bot for a channel. Updates DB flag. */
 export function stopBot(channelLogin: string): void {
+  stoppedBots.add(channelLogin); // prevent auto-reconnect
   const cleanup = activeBots.get(channelLogin);
   if (cleanup) {
     cleanup();
