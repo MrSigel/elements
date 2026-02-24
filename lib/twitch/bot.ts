@@ -416,6 +416,52 @@ async function startChannelBot(channelLogin: string): Promise<tmi.Client | null>
   });
 
   await client.connect();
+
+  // ── Auto-sync "Current Playing" from Twitch stream category ─────────────
+  async function syncCurrentPlaying() {
+    try {
+      const { accessToken: tok } = await refreshTwitchTokenIfNeeded(channel!.owner_id as string);
+      const res = await fetch(`https://api.twitch.tv/helix/streams?user_login=${channelLogin}`, {
+        headers: { "Authorization": `Bearer ${tok}`, "Client-Id": env.TWITCH_CLIENT_ID }
+      });
+      if (!res.ok) return;
+      const json = await res.json() as { data: Array<{ game_name: string; game_id: string; title: string }> };
+      const stream = json.data[0];
+      if (!stream) return; // channel offline
+
+      const gameName = stream.game_name || "Unknown";
+      const gameId = stream.game_id || "0";
+      const title = stream.title || "";
+
+      await admin.from("current_playing").upsert(
+        { channel_id: channelId, game_identifier: gameId, game_name: gameName, provider: title, updated_at: new Date().toISOString() },
+        { onConflict: "channel_id" }
+      );
+
+      const wi = await getWidgetInfo("current_playing");
+      if (wi) {
+        await refreshSnapshot("current_playing", "set_current_playing", {
+          game_name: gameName,
+          game_identifier: gameId,
+          provider: title
+        }, wi.overlay_id, wi.id);
+      }
+    } catch {
+      // ignore sync errors — non-critical
+    }
+  }
+
+  // Poll immediately on connect, then every 2 minutes
+  void syncCurrentPlaying();
+  const syncInterval = setInterval(() => { void syncCurrentPlaying(); }, 2 * 60_000);
+
+  // Patch disconnect to also clear the interval
+  const origDisconnect = client.disconnect.bind(client);
+  client.disconnect = async () => {
+    clearInterval(syncInterval);
+    return origDisconnect();
+  };
+
   return client;
 }
 
